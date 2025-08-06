@@ -1,0 +1,28 @@
+label.form-label {
+  font-weight: 600;
+  color: #212529;
+}
+
+.btn-group-sm .btn {
+  margin-right: 2px;
+}
+
+.btn-dark {
+  background-color: #343a40;
+  border-color: #343a40;
+}
+
+.text-capitalize {
+  text-transform: capitalize;
+}
+
+
+table tr:hover {
+  background-color: #f9f9f9;
+}
+
+label.form-label::after {
+  content: ':';
+  margin-left: 2px;
+  font-weight: normal;
+}

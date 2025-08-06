@@ -1,0 +1,63 @@
+<table class="table table-sm table-hover align-middle">
+    <thead>
+        <tr class="text-muted small">
+            <th appSortableHeader [column]="'firstName'" [direction]="sortColumn === 'firstName' ? sortDirection : ''"
+                (sort)="sort.emit($event)">
+                First Name
+                <i class="ms-1 fa" [ngClass]="{
+          'fa-sort': sortColumn !== 'firstName' || sortDirection === '',
+          'fa-sort-up': sortColumn === 'firstName' && sortDirection === 'asc',
+          'fa-sort-down': sortColumn === 'firstName' && sortDirection === 'desc'
+        }"></i>
+            </th>
+
+            <th class="d-none d-sm-table-cell">Last Name</th>          
+            <th class="d-none d-sm-table-cell">Email Address</th>  
+            <th class="d-none d-sm-table-cell">Username</th>         
+            <th appSortableHeader [column]="'status'" [direction]="sortColumn === 'status' ? sortDirection : ''"
+                (sort)="sort.emit($event)">
+                Status
+                <i class="ms-1 fa" [ngClass]="{
+                    'fa-sort': sortColumn !== 'status' || sortDirection === '',
+                    'fa-sort-up': sortColumn === 'status' && sortDirection === 'asc',
+                    'fa-sort-down': sortColumn === 'status' && sortDirection === 'desc'
+                }">
+                </i>
+            </th>
+            <th class="text-end">Actions</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @if (userList.length === 0) {
+        <app-no-results></app-no-results>
+        } @else {
+        @for (user of userList; track user.email) {
+        <tr>
+            <td>{{ user.firstName }}</td>
+            <td class="d-none d-sm-table-cell">{{ user.lastName }}</td>           
+            <td class="d-none d-sm-table-cell">{{ user.email }}</td>  
+             <td class="d-none d-sm-table-cell">{{ user.username }}</td>         
+            <td>
+                <span class="badge" [ngClass]="user.isActive | statusClass">
+                    {{ user.isActive ? 'Active' : 'Inactive' }}
+                </span>
+            </td>
+            <td class="text-end">
+                <button class="btn btn-sm btn-outline-primary me-1" (click)="view.emit(user)" title="View">
+                    <i class="fa fa-eye"></i>
+                </button>
+
+                <button class="btn btn-sm btn-outline-secondary me-1" (click)="edit.emit(user)" title="Edit">
+                    <i class="fa fa-pencil"></i>
+                </button>
+
+                <button class="btn btn-sm btn-outline-danger" (click)="reset.emit(user)" title="Reset Password">
+                    <i class="fa fa-refresh"></i>
+                </button>
+            </td>
+        </tr>
+        }
+        }
+    </tbody>
+</table>

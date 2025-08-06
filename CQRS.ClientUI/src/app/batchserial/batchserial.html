@@ -1,0 +1,154 @@
+<div class="container mt-4">
+  <!-- Form Card -->
+  <div class="card shadow-sm border-0">
+    <div class="card-header bg-light fw-semibold">
+      <i class="fa fa-plus-circle me-2"></i>Create New Batch Serial
+    </div>
+    <div class="card-body">
+      @if (showValidationAlert && batchSerialForm.invalid) {
+      <div class="alert alert-danger py-2 px-3 small mb-3">
+        <i class="fa fa-exclamation-circle me-2"></i>
+        Check the data in the required fields (<span class="text-danger fw-bold">*</span>).
+      </div>
+      }
+
+      <form [formGroup]="batchSerialForm" class="row g-3">
+        <!-- Fields -->
+        <div class="col-md-6">
+          <label for="contractNo" class="form-label">*Contract No</label>
+          <input id="contractNo" formControlName="contractNo" type="text" class="form-control form-control-sm"
+            [class.is-invalid]="batchSerialForm.get('contractNo')?.touched && batchSerialForm.get('contractNo')?.invalid"
+            placeholder="Batch Contract #" />
+        </div>
+
+        <div class="col-md-6">
+          <label for="customer" class="form-label">*Customer</label>
+          <input id="customer" formControlName="customer" type="text" class="form-control form-control-sm"
+            [class.is-invalid]="batchSerialForm.get('customer')?.touched && batchSerialForm.get('customer')?.invalid"
+            placeholder="Customer Name" />
+        </div>
+
+        <div class="col-md-6">
+          <label for="address" class="form-label">*Address</label>
+          <input id="address" formControlName="address" type="text" class="form-control form-control-sm"
+            [class.is-invalid]="batchSerialForm.get('address')?.touched && batchSerialForm.get('address')?.invalid"
+            placeholder="Address" />
+        </div>
+
+        <div class="col-md-6">
+          <label for="docNo" class="form-label">*Doc No</label>
+          <input id="docNo" formControlName="docNo" type="text" class="form-control form-control-sm"
+            [class.is-invalid]="batchSerialForm.get('docNo')?.touched && batchSerialForm.get('docNo')?.invalid"
+            placeholder="Document #" />
+        </div>
+
+        <!-- Batch Details -->
+        <div class="col-md-6">
+          <label for="batchQty" class="form-label">*Batch Qty</label>
+          <input id="batchQty" formControlName="batchQty" type="number" class="form-control form-control-sm"
+            [formMode]="formMode" [editableInModes]="[FormMode.New]" appFieldAccess
+            [class.is-invalid]="batchSerialForm.get('batchQty')?.touched && batchSerialForm.get('batchQty')?.invalid"
+            placeholder="Batch Qty" />
+        </div>
+
+        <div class="col-md-6">
+          <label for="item_ModelCode" class="form-label">*Model Code</label>
+          <input id="item_ModelCode" formControlName="item_ModelCode" type="text" class="form-control form-control-sm"
+            [class.is-invalid]="batchSerialForm.get('item_ModelCode')?.touched && batchSerialForm.get('item_ModelCode')?.invalid"
+            placeholder="Model Code" />
+        </div>
+
+        <div class="col-md-6">
+          <label for="serialPrefix" class="form-label">*Serial Prefix</label>
+          <input id="serialPrefix" formControlName="serialPrefix" type="text" class="form-control form-control-sm"
+            [formMode]="formMode" [editableInModes]="[FormMode.New]" appFieldAccess
+            [class.is-invalid]="batchSerialForm.get('serialPrefix')?.touched && batchSerialForm.get('serialPrefix')?.invalid"
+            placeholder="Serial Prefix" />
+        </div>
+
+        <!-- Serial Range -->
+        <div class="col-md-3">
+          <label for="startSNo" class="form-label">*Start Serial No</label>
+          <input id="startSNo" formControlName="startSNo" type="text" class="form-control form-control-sm"
+            inputmode="numeric" autocomplete="off" pattern="^\d*$" [formMode]="formMode"
+            [editableInModes]="[FormMode.New]" appFieldAccess
+            [class.is-invalid]="batchSerialForm.get('startSNo')?.touched && batchSerialForm.get('startSNo')?.invalid"
+            (keypress)="allowOnlyDigits($event)" placeholder="Start #" />
+        </div>
+
+        <div class="col-md-3">
+          <label for="endSNo" class="form-label">*End Serial No</label>
+          <input id="endSNo" formControlName="endSNo" type="text" class="form-control form-control-sm"
+            inputmode="numeric" autocomplete="off" pattern="^\d*$" [formMode]="formMode"
+            [editableInModes]="[FormMode.New]" appFieldAccess
+            [class.is-invalid]="batchSerialForm.get('endSNo')?.touched && batchSerialForm.get('endSNo')?.invalid"
+            (keypress)="allowOnlyDigits($event)" placeholder="End #" />
+        </div>
+
+        <!-- Submit/Reset Buttons -->
+        <div class="col-12 text-end mt-3">
+          @if (formMode !== FormMode.View) {
+          <button type="button" class="btn btn-primary btn-sm px-4" (click)="openConfirmation()" [disabled]="isSaving"
+            [attr.title]="batchSerialForm.invalid ? 'Please complete all required fields.' : null">
+            @if (isSaving) {
+            <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+            Saving...
+            } @else {
+            <i class="fa fa-save me-2"></i>
+            {{ formMode === FormMode.Edit ? 'Update' : 'Save' }}
+            }
+          </button>
+          }
+
+          @if (formMode === FormMode.View || formMode === FormMode.Edit && !isSaving) {
+          <button type="button" class="btn btn-danger btn-sm ms-2" (click)="resetForm()">
+            <i class="fa fa-times-circle me-1"></i> Close
+          </button>
+          }
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Table Card -->
+  <div class="card mt-4 shadow-sm border-0">
+      <div class="card-header bg-light fw-semibold px-3 py-3">
+        <div class="row align-items-center">
+          <div class="col">
+            <i class="fa fa-table me-2"></i>Existing Records
+          </div>
+          <div class="col-auto">
+            <input
+              type="text"
+              class="form-control form-control-sm"
+              style="width: 250px;"
+              [value]="searchBox()"
+              (input)="searchBox.set($any($event.target).value)"
+              placeholder="Search here"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="card-body px-3 py-4">
+        <div class="table-responsive">         
+          <app-batch-table
+            [batchList]="paginatedBatchList()"
+            (sort)="handleSort($event)"
+            (edit)="populateFormEdit($event)"
+            (view)="populateFormView($event)"
+            (cancel)="cancelBatchSerial($event)"          
+          >
+          </app-batch-table>
+        </div>
+
+        <app-paginator
+          [currentPage]="currentPage()"
+          [totalPages]="totalPages()"
+          [pageSize]="pageSize()"
+          (pageSizeChange)="pageSize.set($event)"
+          (pageChange)="currentPage.set($event)"
+        ></app-paginator>
+      </div>
+  </div>
+</div>

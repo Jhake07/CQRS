@@ -1,0 +1,73 @@
+<table class="table table-sm table-hover align-middle">
+    <thead>
+        <tr class="text-muted small">
+            <th appSortableHeader [column]="'contractNo'" [direction]="sortColumn === 'contractNo' ? sortDirection : ''"
+                (sort)="sort.emit($event)">
+                Contract
+                <i class="ms-1 fa" [ngClass]="{
+                    'fa-sort': sortColumn !== 'contractNo' || sortDirection === '',
+                    'fa-sort-up': sortColumn === 'contractNo' && sortDirection === 'asc',
+                    'fa-sort-down': sortColumn === 'contractNo' && sortDirection === 'desc'
+                }">
+                </i>
+            </th>
+
+            <th class="d-none d-sm-table-cell">Customer</th>
+            <th class="d-none d-md-table-cell">Address</th>
+            <th class="d-none d-lg-table-cell">Document #</th>
+            <th>Serial Prefix</th>
+            <th>Qty</th>
+            <th appSortableHeader [column]="'status'" [direction]="sortColumn === 'status' ? sortDirection : ''"
+                (sort)="sort.emit($event)">
+                Status
+                <i class="ms-1 fa" [ngClass]="{
+                    'fa-sort': sortColumn !== 'status' || sortDirection === '',
+                    'fa-sort-up': sortColumn === 'status' && sortDirection === 'asc',
+                    'fa-sort-down': sortColumn === 'status' && sortDirection === 'desc'
+                }">
+                </i>
+            </th>
+            <th class="text-end">Actions</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @if (batchList.length === 0) {
+        <app-no-results></app-no-results>
+        } @else {
+        @for (batch of batchList; track batch.contractNo) {
+        <tr>
+            <td>{{ batch.contractNo }}</td>
+            <td class="d-none d-sm-table-cell">{{ batch.customer }}</td>
+            <td class="d-none d-md-table-cell">{{ batch.address }}</td>
+            <td class="d-none d-lg-table-cell">{{ batch.docNo }}</td>
+            <td>{{ batch.serialPrefix }}</td>
+            <td>{{ batch.batchQty }}</td>
+            <td>
+                <span class="badge" [ngClass]="batch.status | statusClass">
+                    {{ batch.status }}
+                </span>
+            </td>
+            <td class="text-end">
+                <!-- View Button -->
+                <button class="btn btn-sm btn-outline-primary me-1" (click)="view.emit(batch)" title="View">
+                    <i class="fa fa-eye"></i>
+                </button>
+
+                <!-- Edit Button -->
+                <button class="btn btn-sm btn-outline-secondary me-1" (click)="edit.emit(batch)"
+                    [disabled]="batch.status === 'Cancelled'" title="Edit">
+                    <i class="fa fa-pencil"></i>
+                </button>
+
+                <!-- Cancel Button -->
+                <button class="btn btn-sm btn-outline-danger" (click)="cancel.emit(batch.id!)"
+                    [disabled]="batch.status === 'Cancelled'" title="Cancel">
+                    <i class="fa fa-trash"></i>
+                </button>
+            </td>
+        </tr>
+        }
+        }
+    </tbody>
+</table>
