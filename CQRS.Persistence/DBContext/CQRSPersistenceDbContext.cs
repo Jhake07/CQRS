@@ -8,6 +8,7 @@ namespace CQRS.Persistence.DBContext
     {
         public DbSet<BatchSerial> BatchSerials { get; set; }
         public DbSet<MainSerial> MainSerials { get; set; }
+        public DbSet<Product> Products { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

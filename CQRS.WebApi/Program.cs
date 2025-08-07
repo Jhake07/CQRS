@@ -39,6 +39,7 @@ app.UseCors(x => x.AllowAnyHeader()
 .AllowCredentials()
 .WithOrigins("http://localhost:4200", "https://localhost:4200"));
 
+//app.UseMiddleware<ExceptionHandlingMiddleware>();
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
