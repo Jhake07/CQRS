@@ -105,9 +105,9 @@ export class AccountService {
         tap((response) => {
           if (response.isSuccess && response.token?.trim().length > 0) {
             this.setCurrentUser(response, true, payload.rememberMe);
-            this.router.navigate(['/batchserial']);
           } else {
-            console.warn('Login failed:', response.message);
+            this.toast.error('Login failed:', response.message);
+            //console.warn('Login failed:', response.message);
           }
         }),
         catchError((error) => {
@@ -121,7 +121,7 @@ export class AccountService {
     localStorage.removeItem('user');
     this.currentUserSignal.set(null);
     this.sessionWarningSignal.set(false); // Hide session modal
-    this.toast.info('✅ Account has been logged out');
+    this.toast.info('Account has been logged out');
     if (this.logoutTimer) {
       clearTimeout(this.logoutTimer);
       this.logoutTimer = null;

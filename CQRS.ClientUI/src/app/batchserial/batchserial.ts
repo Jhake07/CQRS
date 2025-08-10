@@ -1,9 +1,8 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 
 import { of, timer } from 'rxjs';
 import { switchMap, tap, finalize } from 'rxjs/operators';
-
 import { BatchSerialFormFactory } from '../_formfactories/batch-serial-form.factory';
 import { BatchSerialService } from '../_services/batchserial.service';
 import { ConfirmService } from '../_services/confirm.service';
@@ -20,7 +19,7 @@ import { BatchStatus } from '../_enums/batchstatus.enum';
 import { SharedFormsModule } from '../shared/shared-forms/shared-forms-module';
 import { SharedTablesModule } from '../shared/shared-tables/shared-tables-module';
 import { signal, computed } from '@angular/core';
-import { BatchTable } from "./batch-table/batch-table";
+import { BatchTable } from './batch-table/batch-table';
 
 @Component({
   selector: 'app-batchserial',
@@ -37,7 +36,7 @@ export class Batchserial implements OnInit {
   private formAccess = inject(FormAccessService);
   private formUtils = inject(FormUtilsService);
   private paginator = inject(PaginatorService);
-
+  private cdRef = inject(ChangeDetectorRef);
   StatusType = BatchStatus;
   FormMode = FormMode;
   statusOptions: string[] = Object.values(BatchStatus);
@@ -230,11 +229,19 @@ export class Batchserial implements OnInit {
       .pipe(
         switchMap((confirmed) => {
           if (!confirmed) return of(null);
-          this.isSaving = true;
+
+          setTimeout(() => {
+            this.isSaving = true;
+            this.cdRef.detectChanges();
+          });
+
           return this.batchService.cancel(id);
         }),
         finalize(() => {
-          this.isSaving = false;
+          setTimeout(() => {
+            this.isSaving = false;
+            this.cdRef.detectChanges();
+          });
         })
       )
       .subscribe({

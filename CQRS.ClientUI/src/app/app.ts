@@ -21,17 +21,27 @@ export class App implements OnInit {
 
   ngOnInit(): void {
     const user = this.accountService.getStoredUser();
+    const currentUrl = this.router.url;
 
     if (user) {
       this.accountService.setCurrentUser(user);
-      this.router.navigate(['/batchserial']);
+      // Only redirect if we're on login page
+      if (currentUrl === '/login') {
+        this.router.navigate(['/batchserial']);
+      }
     } else {
-      this.router.navigate(['/login']);
+      // If not logged in and trying to access a protected route
+      const isProtectedRoute = ['/user', '/product', '/batchserial'].includes(
+        currentUrl
+      );
+      if (isProtectedRoute) {
+        this.router.navigate(['/login']);
+      }
     }
   }
 
   onExtendSession(): void {
-    this.accountService.extendSession(); // 🕒 user chooses to stay logged in
+    this.accountService.extendSession(); // user chooses to stay logged in
   }
 
   onForceLogout(): void {

@@ -17,20 +17,23 @@ namespace CQRS.Persistence.Repositories
             return existingCode;
         }
 
-        public Task<Product> GetProductByCodeAsync(string code)
+        public async Task<Product> GetProductByCodeAsync(string code)
         {
-            var product = _context.Products
-               .Where(x => x.ModelCode == code)
-               .FirstOrDefaultAsync() ?? throw new NotFoundException(nameof(Product), code);
+            var product = await _context.Products.FirstOrDefaultAsync(x => x.ModelCode == code);
+
+            if (product == null)
+                throw new NotFoundException(nameof(Product), code);
 
             return product;
+
         }
 
-        public Task<Product> GetProductById(int id)
+        public async Task<Product> GetProductById(int id)
         {
-            var product = _context.Products
-                .Where(x => x.Id == id)
-                .FirstOrDefaultAsync() ?? throw new NotFoundException(nameof(Product), id);
+            var product = await _context.Products.FirstOrDefaultAsync(x => x.Id == id);
+
+            if (product == null)
+                throw new NotFoundException(nameof(Product), id);
 
             return product;
         }
@@ -48,6 +51,9 @@ namespace CQRS.Persistence.Repositories
             var product = _context.Products
                .Where(x => x.Description == desc)
                .ToListAsync();
+
+            if (product == null)
+                throw new NotFoundException(nameof(Product), desc);
 
             return product;
         }

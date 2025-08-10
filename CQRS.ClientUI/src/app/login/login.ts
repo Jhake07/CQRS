@@ -44,8 +44,12 @@ export class Login {
         this.isSubmitting = false;
 
         // Session handled in AccountService
-        // You can navigate or show a success toast here
-        this.router.navigate(['/batchserial']);
+        if (res.isSuccess && res.token?.trim().length > 0) {
+          this.router.navigate(['/batchserial']);
+        } else {
+          // Show error message
+          console.warn('Login failed:', res.message);
+        }
       },
       error: (err) => {
         this.isSubmitting = false;

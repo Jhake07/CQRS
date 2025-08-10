@@ -131,15 +131,14 @@
       </div>
 
       <div class="card-body px-3 py-4">
-        <div class="table-responsive">         
+        <div class="table-responsive">
           <app-batch-table
             [batchList]="paginatedBatchList()"
             (sort)="handleSort($event)"
             (edit)="populateFormEdit($event)"
             (view)="populateFormView($event)"
-            (cancel)="cancelBatchSerial($event)"          
-          >
-          </app-batch-table>
+            (cancel)="cancelBatchSerial($event)"
+          ></app-batch-table>
         </div>
 
         <app-paginator
