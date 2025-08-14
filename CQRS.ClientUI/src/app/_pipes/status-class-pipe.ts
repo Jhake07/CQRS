@@ -1,5 +1,6 @@
 import { Pipe, PipeTransform } from '@angular/core';
 import { BatchStatus } from '../_enums/batchstatus.enum';
+import { GenericStatus } from '../_enums/genericstatus.enum';
 
 @Pipe({
   name: 'statusClass',
@@ -16,6 +17,10 @@ export class StatusClassPipe implements PipeTransform {
         return 'bg-success';
       case BatchStatus.Cancelled:
         return 'bg-danger';
+      case GenericStatus.Inactive:
+        return 'bg-secondary';
+      case GenericStatus.Active:
+        return 'bg-info text-dark';
       default:
         return 'bg-secondary';
     }

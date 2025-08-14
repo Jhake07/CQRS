@@ -9,5 +9,6 @@ namespace CQRS.Application.Contracts.Interface
         Task<Product> GetProductByCodeAsync(string code);
         Task<List<Product>> GetProductsByDescriptionAsync(string desc);
         Task<bool> CheckProductCodeAsync(string code);
+        Task<Product> FindProductByCodeAsync(string code);
     }
 }

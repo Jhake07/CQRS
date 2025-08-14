@@ -1,4 +1,4 @@
-export enum UserStatus {
+export enum GenericStatus {
   Active = 'Active',
   Inactive = 'Inactive',
 }

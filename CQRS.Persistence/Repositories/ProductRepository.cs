@@ -8,6 +8,7 @@ namespace CQRS.Persistence.Repositories
 {
     public class ProductRepository(CQRSPersistenceDbContext context) : GenericRepository<Product>(context), IProductRepository
     {
+        // Check if new product code is unique when creating the product
         public async Task<bool> CheckProductCodeAsync(string code)
         {
             var existingCode = await _context.Products
@@ -15,6 +16,14 @@ namespace CQRS.Persistence.Repositories
                 .AnyAsync(p => p.ModelCode == code);
 
             return existingCode;
+        }
+
+        // Check if new product code is unique when updating the product
+        public async Task<Product?> FindProductByCodeAsync(string code)
+        {
+            return await _context.Products
+                .AsNoTracking()
+                .FirstOrDefaultAsync(p => p.ModelCode == code);
         }
 
         public async Task<Product> GetProductByCodeAsync(string code)

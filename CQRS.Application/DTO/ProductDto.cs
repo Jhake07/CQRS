@@ -2,6 +2,7 @@
 {
     public class ProductDto
     {
+        public int Id { get; set; }
         public string ModelCode { get; set; } = string.Empty;
 
         public string Description { get; set; } = string.Empty;

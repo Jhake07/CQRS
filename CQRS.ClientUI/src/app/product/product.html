@@ -1,18 +1,19 @@
-<div class="contaner mt-4">
-  <div class="card shardow-sm border-0">
-    <div class="card-header bg-light fw-semibold"><i class="fa fa-plus-circle me-2"></i>
-      Create New Product
+<!--Form-->
+<div class="container mt-4">
+  <div class="card shadow-sm border-0">
+    <div class="card-header bg-light fw-semibold">
+      <i class="fa fa-plus-circle me-2"></i>Create New Product
     </div>
-  </div>
-  <div class="card-body">
-    @if (showValidationAlert && productForm.invalid){
+    <div class="card-body">
+      @if (showValidationAlert && productForm.invalid){
       <div class="alert alert-danger py-2 px-3 small bm-3">
         <i class="fa fa-exclamation-circle me-2">
           Check the data in the required fields(<span class="text-danger fw-bold">*</span>)
         </i>
       </div>
     }
-    <form [formGroup]="productForm" class="row g-3">
+
+     <form [formGroup]="productForm" class="row g-3">
       <div class="col-md-6">
         <label for="modelCode" class="form-label">*Model Code:</label>
         <input id="modelCode" formControlName="modelCode" type="text" class="form-control form-control-sm" placeholder="Product Code"
@@ -20,29 +21,129 @@
         />
       </div>
       
+      <div class="col-md-6">
+        <label for="description" class="form-label">*Description:</label>
+        <input id="description" formControlName="description" type="text" class="form-control form-control-sm" placeholder="Description"
+          [class.is-invalid]="productForm.get('description')?.touched && productForm.get('description')?.invalid"
+        />
+      </div>
+
+      <div class="col-md-6">
+        <label for="brand" class="form-label">*Brand:</label>
+        <select
+          id="brand"
+          formControlName="brand"
+          class="form-select form-select-sm"
+          [class.is-invalid]="productForm.get('brand')?.touched && productForm.get('brand')?.invalid"
+        >
+          <option value="" disabled>Select Brand</option>
+          @for (brand of brandOptions; track brand) {
+            <option [value]="brand">{{ brand }}</option>
+          }
+        </select>
+      </div>
       
+      <div class="col-md-6">
+        <label for="defaultJOQty" class="form-label">*Default JO Qty:</label>
+        <input id="defaultJOQty" formControlName="defaultJOQty" type="number" class="form-control form-control-sm" placeholder="Default JO Qty"
+          [class.is-invalid]="productForm.get('defaultJOQty')?.touched && productForm.get('defaultJOQty')?.invalid"
+        />
+      </div>     
 
-      <label>Description:</label>
-      <input formControlName="description" />
+      <div class="col-md-6">
+        <label for="components" class="form-label">*Components:</label>
+        <input id="components" formControlName="components" type="text" class="form-control form-control-sm" placeholder="Components"
+          [class.is-invalid]="productForm.get('components')?.touched && productForm.get('components')?.invalid"
+        />
+      </div>     
+      
+      <div class="col-md-6">
+        <label for="accessories" class="form-label">*Accessories:</label>
+        <input id="accessories" formControlName="accessories" type="text" class="form-control form-control-sm" placeholder="Accessories"
+          [class.is-invalid]="productForm.get('accessories')?.touched && productForm.get('accessories')?.invalid"
+        />
+      </div>  
 
-      <label>Brand:</label>
-      <input formControlName="brand" />
+     <div class="col-md-6">
+        <label for="stats" class="form-label">*Status:</label>
+        <select
+          id="stats"
+          formControlName="stats"
+          class="form-select form-select-sm"
+          [class.is-invalid]="productForm.get('stats')?.touched && productForm.get('stats')?.invalid"
+        >
+          <option value="" disabled>Select Status</option>
+          @for (status of statusOptions; track status) {
+            <option [value]="status">{{ status }}</option>
+          }
+        </select>
+    </div>     
 
-      <label>Default JO Qty:</label>
-      <input type="number" formControlName="defaultJOQty" />
+      <div class="col-12 text-end mt-3">
+        @if (formMode !== FormMode.View) {
+        <button type="button" class="btn btn-primary btn-sm px-4" (click)="openConfirmation()" [disabled]="isSaving"
+          [attr.title]="productForm.invalid ? 'Please complete all required fields.' : null">
+          @if (isSaving) {
+          <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+          Saving...
+          } @else {
+          <i class="fa fa-save me-2"></i>
+          {{ formMode === FormMode.Edit ? 'Update' : 'Save' }}
+          }
+        </button>
+        }
 
-      <label>Components:</label>
-      <input formControlName="components" />
-
-      <label>Accessories:</label>
-      <input type="number" formControlName="accessories" />
-
-      <label>Stats:</label>
-      <input formControlName="stats" />
-
-      <button type="submit" [disabled]="productForm.invalid">Submit</button>
+        @if (formMode === FormMode.View || formMode === FormMode.Edit && !isSaving) {
+        <button type="button" class="btn btn-danger btn-sm ms-2" (click)="resetForm()">
+          <i class="fa fa-times-circle me-1"></i> Close
+        </button>
+        }
+      </div>
     </form>
   </div>
-
 </div>
 
+<!--Table-->
+  <div class="card mt-4 shadow-sm border-0">
+    <div class="card-header bg-light fw-semibold px-3 py-3">
+      <div class="row align-items-center">
+        <div class="col">
+          <i class="fa fa-table me-2"></i>Product Records
+        </div>
+        <div class="col-auto">
+          <input type="text" class="form-control form-control-sm" stype="width:250px" placeholder="Search here"
+          [value]="searchBox()" 
+          (input)="searchBox.set($any($event.target).value)" />
+        </div>
+      </div>
+    </div>
+    
+    <div class="card-body px-3 py-4">
+        <div class="table-responsive">
+          @if (tableLoading()) {
+            <div class="text-center py-5">
+              <span class="spinner-border text-primary" role="status" aria-hidden="true"></span>
+              <div class="mt-2 small text-muted">Loading product records...</div>
+            </div>
+          } @else {
+            <app-product-table
+              [productList]="paginatedProductList()"
+              (sort)="handleSort($event)"
+              (edit)="populateFormEdit($event)"
+              (view)="populateFormView($event)"
+              (cancel)="cancelProduct($event)"
+            ></app-product-table>
+          }
+        </div>
+
+        <app-paginator
+          [currentPage]="currentPage()"
+          [totalPages]="totalPages()"
+          [pageSize]="pageSize()"
+          (pageSizeChange)="pageSize.set($event)"
+          (pageChange)="currentPage.set($event)"
+        ></app-paginator>
+      </div>
+    
+  </div>
+</div>

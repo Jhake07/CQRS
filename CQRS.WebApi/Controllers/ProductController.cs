@@ -1,5 +1,7 @@
 ﻿using CQRS.Application.DTO;
 using CQRS.Application.Features.Product.Commands.CreateProduct;
+using CQRS.Application.Features.Product.Commands.DeleteProduct;
+using CQRS.Application.Features.Product.Commands.UpdateProduct;
 using CQRS.Application.Features.Product.Queries.GetAll;
 using CQRS.Application.Features.Product.Queries.GetByCode;
 using CQRS.Application.Features.Product.Queries.GetById;
@@ -93,14 +95,90 @@ namespace CQRS.WebApi.Controllers
 
         // PUT api/<ProductController>/5
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        public async Task<ActionResult> Put(int id, [FromBody] UpdateProductCommand updateProduct)
         {
+            if (updateProduct == null)
+            {
+                _logger.LogWarning("Received null Update Batch Serial Command.");
+                return BadRequest("Request body cannot be null.");
+            }
+
+            try
+            {
+                // Ensure the ID in the route matches the ID in the request
+                if (updateProduct.Id != id)
+                {
+                    _logger.LogWarning("Mismatch between route ID ({Id}) and request ID ({RequestId}).", id, updateProduct.Id);
+                    return BadRequest("Route ID and body ID must match.");
+                }
+
+                // Send the command to the mediator
+                var response = await _mediator.Send(updateProduct);
+
+                if (response == null || string.IsNullOrEmpty(response.Id))
+                {
+                    _logger.LogWarning("Failed to update Product details. No valid data was returned.");
+                    return BadRequest(response);
+                }
+
+                return Ok(response);
+
+            }
+            catch (BadRequestException ex)
+            {
+                // Handle validation or bad request errors
+                _logger.LogError(ex, "Validation or bad request error occurred while creating new Product.");
+
+                return BadRequest(new
+                {
+                    Message = "Controller Validation failed.",
+                    ex.ValidationErrors // Return structured validation errors here
+                });
+            }
+            catch (Exception ex)
+            {
+                // Log unexpected exceptions
+                _logger.LogError(ex, "An unexpected error occurred while creating Product.");
+                return StatusCode(500, new
+                {
+                    Message = "An internal server error occurred. Please try again later.",
+                    Details = ex.Message // Optional: Include this for debugging purposes
+                });
+            }
         }
 
         // DELETE api/<ProductController>/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
+            if (id <= 0)
+            {
+                _logger.LogWarning("Invalid ID provided for deletion: {Id}", id);
+                return BadRequest("Invalid product provided.");
+            }
+            try
+            {
+                var response = await _mediator.Send(new DeleteProductCommand { Id = id });
+
+                if (response == null || string.IsNullOrEmpty(response.Id))
+                {
+                    _logger.LogWarning("Failed to delete Product with ID {Id}. No valid data was returned.", id);
+                    return BadRequest(response);
+                }
+
+                _logger.LogInformation("Product with ID {Id} successfully deleted.", id);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error");
+
+                return StatusCode(500, new
+                {
+                    Message = "An internal server error occurred. Please try again later.",
+                    Details = ex.Message // Optional: Include this for debugging purposes
+                });
+            }
         }
     }
 }

@@ -20,9 +20,4 @@
     <ProjectReference Include="..\CQRS.Domain\CQRS.Domain.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Features\Product\Commands\DeleteProduct\" />
-    <Folder Include="Features\Product\Commands\UpdateProduct\" />
-  </ItemGroup>
-
 </Project>

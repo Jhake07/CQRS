@@ -20,6 +20,7 @@ export class BatchSerialService {
   }
 
   update(id: number, payload: BatchSerial): Observable<CustomResultResponse> {
+    console.log(id);
     return this.http.put<CustomResultResponse>(
       `${this.baseUrl}/${id}`,
       payload

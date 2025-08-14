@@ -1,0 +1,82 @@
+<table class="table table-sm table-hover align-middle">
+    <thead>
+        <tr class="text-muted small">
+            <th appSortableHeader [column]="'modelCode'" [direction]="sortColumn === 'modelCode' ? sortDirection : ''"
+                (sort)="sort.emit($event)">
+                Contract
+                <i class="ms-1 fa" [ngClass]="{
+                    'fa-sort': sortColumn !== 'modelCode' || sortDirection === '',
+                    'fa-sort-up': sortColumn === 'modelCode' && sortDirection === 'asc',
+                    'fa-sort-down': sortColumn === 'modelCode' && sortDirection === 'desc'
+                }">
+                </i>
+            </th>
+
+            <th class="d-none d-sm-table-cell">Description</th>
+            <th appSortableHeader [column]="'brand'" [direction]="sortColumn === 'brand' ? sortDirection : ''"
+                (sort)="sort.emit($event)">
+                Brand
+                <i class="ms-1 fa" [ngClass]="{
+                    'fa-sort': sortColumn !== 'brand' || sortDirection === '',
+                    'fa-sort-up': sortColumn === 'brand' && sortDirection === 'asc',
+                    'fa-sort-down': sortColumn === 'brand' && sortDirection === 'desc'
+                }">
+                </i>
+            </th>
+            <th class="d-none d-lg-table-cell">Default JO Qty</th>
+            <th>Components</th>
+            <th>Accessories</th>
+            <th appSortableHeader [column]="'stats'" [direction]="sortColumn === 'stats' ? sortDirection : ''"
+                (sort)="sort.emit($event)">
+                Status
+                <i class="ms-1 fa" [ngClass]="{
+                    'fa-sort': sortColumn !== 'stats' || sortDirection === '',
+                    'fa-sort-up': sortColumn === 'stats' && sortDirection === 'asc',
+                    'fa-sort-down': sortColumn === 'stats' && sortDirection === 'desc'
+                }">
+                </i>
+            </th>
+            <th class="text-end">Actions</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @if (productList.length === 0) {
+        <app-no-results></app-no-results>
+        } @else {
+        @for (product of productList; track product.modelCode) {
+        <tr>
+            <td>{{ product.modelCode }}</td>
+            <td class="d-none d-sm-table-cell">{{ product.description }}</td>
+            <td class="d-none d-md-table-cell">{{ product.brand }}</td>
+            <td class="d-none d-lg-table-cell">{{ product.defaultJOQty }}</td>
+            <td>{{ product.components }}</td>
+            <td>{{ product.accessories }}</td>
+            <td>
+                <span class="badge" [ngClass]="product.stats | statusClass">
+                    {{ product.stats }}
+                </span>
+            </td>
+            <td class="text-end">
+                <!-- View Button -->
+                <button class="btn btn-sm btn-outline-primary me-1" (click)="view.emit(product)" title="View">
+                    <i class="fa fa-eye"></i>
+                </button>
+
+                <!-- Edit Button -->
+                <button class="btn btn-sm btn-outline-secondary me-1" (click)="edit.emit(product)"
+                    [disabled]="product.stats === 'Cancelled'" title="Edit">
+                    <i class="fa fa-pencil"></i>
+                </button>
+
+                <!-- Cancel Button -->
+                <button class="btn btn-sm btn-outline-danger" (click)="cancel.emit(product.id!)"
+                    [disabled]="product.stats === 'Cancelled'" title="Cancel">
+                    <i class="fa fa-trash"></i>
+                </button>
+            </td>
+        </tr>
+        }
+        }
+    </tbody>
+</table>

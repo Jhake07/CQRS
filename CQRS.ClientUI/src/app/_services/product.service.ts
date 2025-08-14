@@ -9,7 +9,7 @@ import { CustomResultResponse } from '../_models/response/customresultresponse';
   providedIn: 'root',
 })
 export class ProductService {
-  private readonly baseUrl = `${environment.apiUrl}/product`;
+  private readonly baseUrl = `${environment.apiUrl}product`;
 
   constructor(private http: HttpClient) {}
 
@@ -33,6 +33,8 @@ export class ProductService {
     id: number,
     payload: Product
   ): Observable<CustomResultResponse> {
+    console.log(id);
+    console.log(payload);
     return this.http.put<CustomResultResponse>(
       `${this.baseUrl}/${id}`,
       payload

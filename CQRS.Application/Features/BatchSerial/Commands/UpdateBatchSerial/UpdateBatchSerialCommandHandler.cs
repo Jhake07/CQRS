@@ -33,7 +33,6 @@ namespace CQRS.Application.Features.BatchSerial.Commands.UpdateBatchSerial
         {
             try
             {
-                // Check existing Batch ContractNo Details                
                 var batchSerial = await _batchSerialRepository.GetBatchSerialsById(request.Id);
                 if (batchSerial == null)
                 {
@@ -45,77 +44,33 @@ namespace CQRS.Application.Features.BatchSerial.Commands.UpdateBatchSerial
                     };
                 }
 
-                bool isContractNoUnchanged = batchSerial.ContractNo == request.ContractNo;
-                if (isContractNoUnchanged)
-                {
+                // Unified validation
+                var validator = new UpdateBatchSerialCommandValidator(_batchSerialRepository);
+                var validationResult = await validator.ValidateAsync(request, cancellationToken);
 
-                    var validationForExistingRecord = await new UpdateBatchSerialCommandValidatorForExistingContract(_batchSerialRepository)
-                      .ValidateAsync(request, cancellationToken);
-
-                    if (validationForExistingRecord.Errors.Count != 0)
-                    {
-                        _logger.LogWarning("Validation failed for UpdateBatchSerialCommand: {Errors}", validationForExistingRecord.Errors);
-                        throw new BadRequestException("Validation failed", validationForExistingRecord);
-                    }
-
-                    _mapper.Map(request, batchSerial);
-
-                    await using var transaction = await _batchSerialRepository.BeginTransactionAsync();
-
-                    try
-                    {
-                        await _batchSerialRepository.UpdateAsync(batchSerial);
-                        await _mainSerialRepository.UpdateContractNoAsync(batchSerial.ContractNo, request.ContractNo);
-                        await transaction.CommitAsync(cancellationToken);
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, "Transaction failed. Rolling back changes.");
-                        await transaction.RollbackAsync(cancellationToken);
-                        throw;
-                    }
-
-                    _logger.LogInformation("Batch and MainSerials successfully updated for ContractNo: {ContractNo}", request.ContractNo);
-
-                    return new CustomResultResponse
-                    {
-                        IsSuccess = true,
-                        Message = "Batch Contract details successfully updated.",
-                        Id = request.Id.ToString()
-                    };
-                }
-
-                // Validate data
-                var validationResult = await new UpdateBatchSerialCommandValidator(_batchSerialRepository)
-                      .ValidateAsync(request, cancellationToken);
-
-
-                if (validationResult.Errors.Count != 0)
+                if (!validationResult.IsValid)
                 {
                     _logger.LogWarning("Validation failed for UpdateBatchSerialCommand: {Errors}", validationResult.Errors);
                     throw new BadRequestException("Validation failed", validationResult);
                 }
 
-                // Get the Old Contract# to update MainSerials table
+                // Map updates
                 string oldContractNo = batchSerial.ContractNo;
-
-                // Map the updates to the existing entity
                 _mapper.Map(request, batchSerial);
 
-                //Use transaction for BatchSerial and MainSerial updates
-                await using var updateTransaction = await _batchSerialRepository.BeginTransactionAsync();
+                // Transactional update
+                await using var transaction = await _batchSerialRepository.BeginTransactionAsync();
 
                 try
                 {
                     await _batchSerialRepository.UpdateAsync(batchSerial);
                     await _mainSerialRepository.UpdateContractNoAsync(oldContractNo, batchSerial.ContractNo);
-
-                    await updateTransaction.CommitAsync(cancellationToken);
+                    await transaction.CommitAsync(cancellationToken);
                 }
                 catch (Exception ex)
                 {
                     _logger.LogError(ex, "Transaction failed. Rolling back changes.");
-                    await updateTransaction.RollbackAsync(cancellationToken);
+                    await transaction.RollbackAsync(cancellationToken);
                     throw;
                 }
 
@@ -127,7 +82,6 @@ namespace CQRS.Application.Features.BatchSerial.Commands.UpdateBatchSerial
                     Message = "Batch Contract details successfully updated.",
                     Id = batchSerial.Id.ToString()
                 };
-
             }
             catch (BadRequestException ex)
             {
@@ -137,13 +91,12 @@ namespace CQRS.Application.Features.BatchSerial.Commands.UpdateBatchSerial
                 {
                     IsSuccess = false,
                     Message = "Handler Validation failed.",
-                    ValidationErrors = ex.ValidationErrors, // Include validation errors here
+                    ValidationErrors = ex.ValidationErrors,
                     Id = null
                 };
             }
             catch (Exception ex)
             {
-                // Log and handle exceptions appropriately
                 _logger.LogError(ex, "An error occurred while updating the details for Batch Contract: {Id}", request.Id);
                 return new CustomResultResponse
                 {

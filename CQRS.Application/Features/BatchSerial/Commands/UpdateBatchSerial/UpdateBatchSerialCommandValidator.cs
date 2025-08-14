@@ -9,9 +9,10 @@ namespace CQRS.Application.Features.BatchSerial.Commands.UpdateBatchSerial
             : base(batchSerialRepository)
         {
             // Add additional validation rules specific to UpdateBatchSerialCommand (if any)
-            RuleFor(p => p.ContractNo)
-            .NotEmpty().WithMessage("{PropertyName} is required.")
-            .NotNull().WithMessage("{PropertyName} is required.");
+            RuleFor(p => p)
+             .MustAsync((command, cancellationToken) =>
+                ContractNoIsValid(command, cancellationToken))
+             .WithMessage("ContractNo already exists.");
         }
 
         protected override string GetContractNo(UpdateBatchSerialCommand command)
@@ -22,5 +23,18 @@ namespace CQRS.Application.Features.BatchSerial.Commands.UpdateBatchSerial
         {
             return command?.DocNo ?? string.Empty; // Use null coalescing operator for safety
         }
+        private async Task<bool> ContractNoIsValid(UpdateBatchSerialCommand command, CancellationToken cancellationToken)
+        {
+            if (string.IsNullOrWhiteSpace(command.ContractNo)) return false;
+
+            var existing = await _batchSerialRepository.GetBatchSerialsById(command.Id);
+            if (existing == null) return true;
+
+            if (existing.ContractNo == command.ContractNo) return true;
+
+            var exists = await _batchSerialRepository.CheckBatchContractNo(command.ContractNo);
+            return !exists;
+        }
+
     }
 }

@@ -21,13 +21,16 @@ export const responseInterceptor: HttpInterceptorFn = (req, next) => {
 
       if (!isStructured) {
         toastr.error(
-          'An unexpected error occurred. Please try again later.',
+          'An unexpected error occurred. Please reach out to system admin or try again later.',
           'Network/Server Error'
         );
       }
 
-      // Re-throw original error to let component handle it (if needed)
-      return throwError(() => error);
+      // Tag error to indicate interceptor has handled it (for component-level filtering)
+      return throwError(() => {
+        (error as any)._handledByInterceptor = !isStructured;
+        return error;
+      });
     })
   );
 };
