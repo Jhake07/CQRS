@@ -16,11 +16,12 @@ import { ProductTable } from './product-table/product-table';
 import { FormAccessService } from '../_services/form-access.service';
 import { Brand } from '../_enums/brand.enum';
 import { GenericStatus } from '../_enums/genericstatus.enum';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-product',
   standalone: true,
-  imports: [SharedFormsModule, ProductTable],
+  imports: [SharedFormsModule, ProductTable, CommonModule],
   templateUrl: './product.html',
   styleUrl: './product.css',
 })
@@ -45,6 +46,11 @@ export class ProductComponent implements OnInit {
 
   brandOptions = Object.values(Brand);
   statusOptions = Object.values(GenericStatus);
+
+  componentOptions = signal(['Motherboard', 'PCBI', 'Antenna']);
+  selectedComponents = signal<string[]>([]);
+  componentSummary = computed(() => this.selectedComponents().join(';'));
+
   // Table Declaration
   pageSize = signal<number>(5);
   currentPage = signal(1);
@@ -53,7 +59,7 @@ export class ProductComponent implements OnInit {
   searchBox = signal('');
   tableLoading = signal(false);
 
-  // editable fields
+  //#region editable fields
   readonly editableFields: string[] = [
     'modelCode',
     'description',
@@ -63,6 +69,8 @@ export class ProductComponent implements OnInit {
     'accessories',
     'stats',
   ];
+
+  //#endregion
 
   ngOnInit(): void {
     this.formMode = FormMode.New;
@@ -102,6 +110,16 @@ export class ProductComponent implements OnInit {
       });
   }
 
+  toggleComponent(component: string, isChecked: boolean): void {
+    const current = this.selectedComponents();
+    const updated = isChecked
+      ? [...current, component]
+      : current.filter((c) => c !== component);
+
+    this.selectedComponents.set(updated);
+    this.productForm.get('components')?.setValue(updated.join(';'));
+  }
+
   //#region Generic Function
   resetForm(): void {
     this.formMode = FormMode.New;
@@ -118,6 +136,7 @@ export class ProductComponent implements OnInit {
       accessories: 0,
       stats: '',
     });
+    this.selectedComponents.set([]);
   }
 
   private handleGenericResponse(
@@ -314,6 +333,14 @@ export class ProductComponent implements OnInit {
     this.applyFieldAccess();
     this.productForm.patchValue(product);
     this.selectedProduct = product;
+
+    //check the components checkbox if they're present in the component textbox
+    const rawComponents = product.components ?? '';
+    const parsed = rawComponents
+      .split(';')
+      .map((c) => c.trim())
+      .filter((c) => c);
+    this.selectedComponents.set(parsed);
   }
 
   populateFormView(product: Product): void {
@@ -321,6 +348,14 @@ export class ProductComponent implements OnInit {
     this.productForm.disable();
     this.productForm.patchValue(product);
     this.selectedProduct = product;
+
+    //check the components checkbox if they're present in the component textbox
+    const rawComponents = product.components ?? '';
+    const parsed = rawComponents
+      .split(';')
+      .map((c) => c.trim())
+      .filter((c) => c);
+    this.selectedComponents.set(parsed);
   }
 
   cancelProduct(id: number): void {

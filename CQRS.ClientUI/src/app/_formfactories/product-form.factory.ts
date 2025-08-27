@@ -15,7 +15,7 @@ export class ProductFormFactory {
       description: ['', Validators.required],
       brand: ['', Validators.required],
       defaultJOQty: [0, [Validators.required, Validators.min(100)]],
-      components: ['', Validators.required],
+      components: [{ value: '', disabled: false }, Validators.required],
       accessories: [0, [Validators.required, Validators.min(3)]],
       stats: ['', Validators.required],
     });

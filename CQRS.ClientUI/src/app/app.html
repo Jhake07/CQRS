@@ -1,33 +1,37 @@
-<ng-container *ngIf="isUserLogged(); else minimalView">
-  <app-header></app-header>
+@if (isUserLogged()) {
+  <div class="d-flex">
+    <!-- Sidebar navigation -->
+    <app-header></app-header>
 
-  <main class="container py-4">
-    <router-outlet></router-outlet>
-  </main>
-
-  <app-footer></app-footer>
-</ng-container>
-
-<ng-template #minimalView>
+    <!-- Main content area -->
+    <main class="main-content flex-grow-1 p-4">
+      <router-outlet></router-outlet>
+      <app-footer></app-footer>
+    </main>
+  </div>
+} @else {
+  <!-- Minimal layout for login or public pages -->
   <main class="container py-5">
     <router-outlet></router-outlet>
   </main>
-</ng-template>
+}
 
 <!-- SESSION WARNING MODAL -->
-<div *ngIf="showSessionWarning()" class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0, 0, 0, 0.5);">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content shadow border-warning">
-      <div class="modal-header bg-warning text-dark">
-        <h5 class="modal-title">Session Expiring</h5>
-      </div>
-      <div class="modal-body">
-        <p>Your session will expire in few mins. Stay logged in?</p>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary" (click)="onForceLogout()">Log Out</button>
-        <button class="btn btn-primary" (click)="onExtendSession()">Stay Logged In</button>
+@if (showSessionWarning()) {
+  <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0, 0, 0, 0.5);">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content shadow border-warning">
+        <div class="modal-header bg-warning text-dark">
+          <h5 class="modal-title">Session Expiring</h5>
+        </div>
+        <div class="modal-body">
+          <p>Your session will expire in few mins. Stay logged in?</p>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="onForceLogout()">Log Out</button>
+          <button class="btn btn-primary" (click)="onExtendSession()">Stay Logged In</button>
+        </div>
       </div>
     </div>
   </div>
-</div>
+}

@@ -65,13 +65,13 @@
 
                 <!-- Edit Button -->
                 <button class="btn btn-sm btn-outline-secondary me-1" (click)="edit.emit(product)"
-                    [disabled]="product.stats === 'Cancelled'" title="Edit">
+                    [disabled]="product.stats === 'Inactive'" title="Edit">
                     <i class="fa fa-pencil"></i>
                 </button>
 
                 <!-- Cancel Button -->
                 <button class="btn btn-sm btn-outline-danger" (click)="cancel.emit(product.id!)"
-                    [disabled]="product.stats === 'Cancelled'" title="Cancel">
+                    [disabled]="product.stats === 'Inactive'" title="Cancel">
                     <i class="fa fa-trash"></i>
                 </button>
             </td>

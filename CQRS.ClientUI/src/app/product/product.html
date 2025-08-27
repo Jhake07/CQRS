@@ -50,19 +50,43 @@
         />
       </div>     
 
-      <div class="col-md-6">
-        <label for="components" class="form-label">*Components:</label>
-        <input id="components" formControlName="components" type="text" class="form-control form-control-sm" placeholder="Components"
-          [class.is-invalid]="productForm.get('components')?.touched && productForm.get('components')?.invalid"
+    <!-- Readonly Components Textbox -->
+    <div class="col-md-6 mt-3">
+      <label for="components" class="form-label">*Components</label>
+      <input
+        id="components"
+        formControlName="components"
+        type="text"
+        class="form-control form-control-sm"
+        [readonly]="true"
+        [value]="selectedComponents().join(';')"
+        placeholder="Selected Components"
+      />
+    </div>
+
+    <div class="col-md-6">
+      <label for="accessories" class="form-label">*Accessories:</label>
+      <input id="accessories" formControlName="accessories" type="text" class="form-control form-control-sm" placeholder="Accessories"
+        [class.is-invalid]="productForm.get('accessories')?.touched && productForm.get('accessories')?.invalid"
+      />
+    </div>  
+
+      <!-- Checkbox Group -->
+    <div class="col-md-12 mt-3">
+      <div class="form-check form-check-inline" *ngFor="let comp of componentOptions()">
+        <input
+          #cb
+          class="form-check-input"
+          type="checkbox"
+          [value]="comp"
+          (change)="toggleComponent(comp, cb.checked)"
+          [checked]="selectedComponents().includes(comp)"
+          [disabled]="formMode === FormMode.View"
+          [id]="comp"
         />
-      </div>     
-      
-      <div class="col-md-6">
-        <label for="accessories" class="form-label">*Accessories:</label>
-        <input id="accessories" formControlName="accessories" type="text" class="form-control form-control-sm" placeholder="Accessories"
-          [class.is-invalid]="productForm.get('accessories')?.touched && productForm.get('accessories')?.invalid"
-        />
-      </div>  
+        <label class="form-check-label" [for]="comp">{{ comp }}</label>
+      </div>
+    </div>
 
      <div class="col-md-6">
         <label for="stats" class="form-label">*Status:</label>
