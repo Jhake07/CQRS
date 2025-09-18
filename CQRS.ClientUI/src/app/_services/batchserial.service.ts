@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { BatchSerial } from '../_models/batchserial/batchserial';
+import { BatchSerial } from '../_models/batchserial/batchserial.model';
 import { environment } from '../environment/environment.dev';
 import { Observable } from 'rxjs';
-import { CustomResultResponse } from '../_models/response/customresultresponse';
+import { CustomResultResponse } from '../_models/response/customresultresponse.model';
 
 @Injectable({ providedIn: 'root' })
 export class BatchSerialService {

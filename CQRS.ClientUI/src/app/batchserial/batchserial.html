@@ -51,13 +51,31 @@
             placeholder="Batch Qty" />
         </div>
 
-        <div class="col-md-6">
+        <!-- <div class="col-md-6">
           <label for="item_ModelCode" class="form-label">*Model Code</label>
           <input id="item_ModelCode" formControlName="item_ModelCode" type="text" class="form-control form-control-sm"
             [class.is-invalid]="batchSerialForm.get('item_ModelCode')?.touched && batchSerialForm.get('item_ModelCode')?.invalid"
             placeholder="Model Code" />
-        </div>
+        </div> -->
+      <div class="col-md-6">
+        <label for="item_ModelCode" class="form-label">*Model Code</label>
+          <select
+            id="item_ModelCode"
+            formControlName="item_ModelCode"
+            class="form-select form-select-sm"
+            [class.is-invalid]="batchSerialForm.get('item_ModelCode')?.touched && batchSerialForm.get('item_ModelCode')?.invalid"
+            aria-describedby="modelCodeHelp"
+          >
+            <option value="" disabled>Select Model Code</option>
 
+            @for (product of productList(); track product.id) {
+              <option [value]="product.modelCode">
+                {{ product.modelCode }}
+              </option>
+            }
+        </select>
+      </div>
+      
         <div class="col-md-6">
           <label for="serialPrefix" class="form-label">*Serial Prefix</label>
           <input id="serialPrefix" formControlName="serialPrefix" type="text" class="form-control form-control-sm"
@@ -115,7 +133,7 @@
       <div class="card-header bg-light fw-semibold px-3 py-3">
         <div class="row align-items-center">
           <div class="col">
-            <i class="fa fa-table me-2"></i>Existing Records
+            <i class="fa fa-table me-2"></i>Batch Contract Records
           </div>
           <div class="col-auto">
             <input
@@ -132,6 +150,14 @@
 
       <div class="card-body px-3 py-4">
         <div class="table-responsive">
+          @if (tableLoading())
+          {
+            <div class="text-center py-5">
+              <span class="spinner-border text-primary" role="status" aria-hidden="true"></span>
+              <div class="mt-2 small text-muted">Loading Batch Contract records...</div>
+            </div>
+          }
+          @else {
           <app-batch-table
             [batchList]="paginatedBatchList()"
             (sort)="handleSort($event)"
@@ -139,6 +165,7 @@
             (view)="populateFormView($event)"
             (cancel)="cancelBatchSerial($event)"
           ></app-batch-table>
+          }
         </div>
 
         <app-paginator

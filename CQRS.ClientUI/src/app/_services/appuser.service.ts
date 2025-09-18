@@ -2,11 +2,11 @@ import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../environment/environment.dev';
 import { Observable } from 'rxjs';
-import { RegisterUserRequest } from '../_models/appuser/registeruserrequest';
-import { CustomResultResponse } from '../_models/response/customresultresponse';
-import { UpdateUserRequest } from '../_models/appuser/updateuserrequest';
-import { ViewUserRequest } from '../_models/appuser/viewuserrequest';
-import { ResetUserRequest } from '../_models/appuser/resetuserrequest';
+import { RegisterUserRequest } from '../_models/appuser/registeruserrequest.model';
+import { CustomResultResponse } from '../_models/response/customresultresponse.model';
+import { UpdateUserRequest } from '../_models/appuser/updateuserrequest.model';
+import { ViewUserRequest } from '../_models/appuser/viewuserrequest.model';
+import { ResetUserRequest } from '../_models/appuser/resetuserrequest.model';
 
 @Injectable({
   providedIn: 'root',

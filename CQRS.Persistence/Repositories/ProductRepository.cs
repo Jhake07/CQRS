@@ -21,6 +21,9 @@ namespace CQRS.Persistence.Repositories
         // Check if new product code is unique when updating the product
         public async Task<Product?> FindProductByCodeAsync(string code)
         {
+            if (string.IsNullOrWhiteSpace(code))
+                return null;
+
             return await _context.Products
                 .AsNoTracking()
                 .FirstOrDefaultAsync(p => p.ModelCode == code);

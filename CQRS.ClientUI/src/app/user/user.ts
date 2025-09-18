@@ -1,6 +1,6 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormGroup } from '@angular/forms';
-import { RegisterUserRequest } from '../_models/appuser/registeruserrequest';
+import { RegisterUserRequest } from '../_models/appuser/registeruserrequest.model';
 import { AppuserService } from '../_services/appuser.service';
 import { ToastmessageService } from '../_services/toastmessage.service';
 import { FormMode } from '../_enums/form-mode.enum';
@@ -12,11 +12,11 @@ import { FormAccessService } from '../_services/form-access.service';
 import { FormUtilsService } from '../_services/form-utils.service';
 import { ConfirmService } from '../_services/confirm.service';
 import { finalize, of, switchMap, tap, timer } from 'rxjs';
-import { CustomResultResponse } from '../_models/response/customresultresponse';
-import { UpdateUserRequest } from '../_models/appuser/updateuserrequest';
-import { ViewUserRequest } from '../_models/appuser/viewuserrequest';
-import { ResetUserRequest } from '../_models/appuser/resetuserrequest';
-import { UserTable } from "./user-table/user-table";
+import { CustomResultResponse } from '../_models/response/customresultresponse.model';
+import { UpdateUserRequest } from '../_models/appuser/updateuserrequest.model';
+import { ViewUserRequest } from '../_models/appuser/viewuserrequest.model';
+import { ResetUserRequest } from '../_models/appuser/resetuserrequest.model';
+import { UserTable } from './user-table/user-table';
 
 @Component({
   selector: 'app-user',
@@ -50,9 +50,11 @@ export class User implements OnInit {
   sortDirection = signal<'' | 'asc' | 'desc'>('');
   searchBox = signal('');
   User: any;
-  // Get current year
-  currentYear = new Date().getFullYear();
 
+  currentYear = new Date().getFullYear();
+  tableLoading = signal(false);
+
+  //#region Initialization Functions
   ngOnInit(): void {
     this.formMode = FormMode.New;
     this.initializeForm();
@@ -66,20 +68,33 @@ export class User implements OnInit {
   }
 
   private loadUsers(): void {
-    this.appUserService.getAll().subscribe({
-      next: (data) => {
-        this.userList.set(data);
-      },
-      error: (error) => {
-        const msg =
-          error.status === 404
-            ? 'User not found. Please check the API.'
-            : 'An unexpected error occured.';
-        this.toast.error(msg, 'Load Error');
-      },
-    });
+    this.tableLoading.set(true);
+    this.appUserService
+      .getAll()
+      .pipe(
+        switchMap((data) =>
+          timer(1000).pipe(
+            switchMap(() => {
+              this.userList.set(data);
+              return [];
+            })
+          )
+        ),
+        finalize(() => this.tableLoading.set(false))
+      )
+      .subscribe({
+        error: (error) => {
+          const msg =
+            error.status === 404
+              ? 'User not found. Please check the API.'
+              : 'An unexpected error occured.';
+          this.toast.error(msg, 'Load Error');
+        },
+      });
   }
+  //#endregion
 
+  //#region Submit/Update Functions
   openConfirmation(): void {
     this.showValidationAlert = true;
 
@@ -244,30 +259,37 @@ export class User implements OnInit {
       });
   }
 
-  populateFormEdit(user: ViewUserRequest): void {
-    this.formMode = FormMode.Edit;
-    this.userForm.enable();
-    this.applyFieldAccess();
-    this.userForm.patchValue(user);
-    this.selectedUser = user;
+  capitalizeFirstLetter(value: string): string {
+    return value
+      ? value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()
+      : '';
   }
 
-  populateFormView(user: ViewUserRequest): void {
-    this.formMode = FormMode.View;
-    this.userForm.disable();
-    this.userForm.patchValue(user);
-    this.selectedUser = user;
+  updateUserName(): void {
+    const firstName = this.userForm.get('firstName')?.value?.trim() || '';
+    const lastName = this.userForm.get('lastName')?.value?.trim() || '';
+
+    const firstInitial = firstName.charAt(0).toUpperCase();
+
+    const titleCaseLastName = lastName
+      .split(' ')
+      .map(
+        (word: string) =>
+          word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+      )
+      .join('');
+
+    const generatedUsername = firstInitial + titleCaseLastName;
+    const generatedPassword = `${generatedUsername}@${this.currentYear}`;
+
+    this.userForm.get('username')?.setValue(generatedUsername);
+    this.userForm.get('password')?.setValue(generatedPassword);
+    this.userForm.get('confirmPassword')?.setValue(generatedPassword);
   }
 
-  resetForm(): void {
-    this.formMode = FormMode.New;
-    this.selectedUser = null;
-    this.showValidationAlert = false;
+  //#endregion
 
-    this.formUtils.resetWithDefaults(this.userForm, {
-      id: null,
-    });
-  }
+  //#region Table Functions
 
   paginatedUserList = computed(() => {
     const search = this.searchBox().toLowerCase().trim();
@@ -301,6 +323,10 @@ export class User implements OnInit {
     return this.paginator.getPaginated(filtered, size, page);
   });
 
+  totalPages = computed(() =>
+    this.paginator.getTotalPages(this.userList(), this.pageSize())
+  );
+
   handleSort(event: { column: string; direction: '' | 'asc' | 'desc' }): void {
     this.sortColumn.set(event.column); //updates the signal value
     this.sortDirection.set(event.direction); //updates the signal value
@@ -314,31 +340,32 @@ export class User implements OnInit {
     );
   }
 
-  capitalizeFirstLetter(value: string): string {
-    return value
-      ? value.charAt(0).toUpperCase() + value.slice(1).toLowerCase()
-      : '';
+  populateFormEdit(user: ViewUserRequest): void {
+    this.formMode = FormMode.Edit;
+    this.userForm.enable();
+    this.applyFieldAccess();
+    this.userForm.patchValue(user);
+    this.selectedUser = user;
   }
 
-  updateUserName(): void {
-    const firstName = this.userForm.get('firstName')?.value?.trim() || '';
-    const lastName = this.userForm.get('lastName')?.value?.trim() || '';
-
-    const firstInitial = firstName.charAt(0).toUpperCase();
-
-    const titleCaseLastName = lastName
-      .split(' ')
-      .map(
-        (word: string) =>
-          word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
-      )
-      .join('');
-
-    const generatedUsername = firstInitial + titleCaseLastName;
-    const generatedPassword = `${generatedUsername}@${this.currentYear}`;
-
-    this.userForm.get('username')?.setValue(generatedUsername);
-    this.userForm.get('password')?.setValue(generatedPassword);
-    this.userForm.get('confirmPassword')?.setValue(generatedPassword);
+  populateFormView(user: ViewUserRequest): void {
+    this.formMode = FormMode.View;
+    this.userForm.disable();
+    this.userForm.patchValue(user);
+    this.selectedUser = user;
   }
+
+  //#endregion
+
+  //#region Generic Functions
+  resetForm(): void {
+    this.formMode = FormMode.New;
+    this.selectedUser = null;
+    this.showValidationAlert = false;
+
+    this.formUtils.resetWithDefaults(this.userForm, {
+      id: null,
+    });
+  }
+  //#endregion
 }

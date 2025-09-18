@@ -28,7 +28,6 @@ namespace CQRS.Identity.Services
 
             if (user == null)
             {
-                //throw new NotFoundException($"User with {request.Email} not found.", request.Email);
                 return new AuthResponse
                 {
                     IsSuccess = false,
@@ -38,7 +37,7 @@ namespace CQRS.Identity.Services
 
             if (!user.IsActive)
             {
-                //throw new BadRequestException($"User with {request.Email} is not active.");
+
                 return new AuthResponse
                 {
                     IsSuccess = false,
@@ -48,9 +47,8 @@ namespace CQRS.Identity.Services
 
             var result = await _signInManager.CheckPasswordSignInAsync(user, request.Password, false);
 
-            if (result.Succeeded == false)
+            if (!result.Succeeded)
             {
-                //throw new BadRequestException($"Credentials for '{request.Email} aren't valid'.");
                 return new AuthResponse
                 {
                     IsSuccess = false,

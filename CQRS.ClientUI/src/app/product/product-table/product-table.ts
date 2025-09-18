@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { Product } from '../../_models/product/product';
+import { Product } from '../../_models/product/product.model';
 import { CommonModule, NgClass } from '@angular/common';
 import { NoResults } from '../../shared/no-results/no-results';
 import { StatusClassPipe } from '../../_pipes/status-class-pipe';

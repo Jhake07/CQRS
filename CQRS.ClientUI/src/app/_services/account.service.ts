@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, signal, WritableSignal } from '@angular/core';
 import { environment } from '../environment/environment.dev';
-import { AuthResponse } from '../_models/response/authresponse';
+import { AuthResponse } from '../_models/response/authresponse.model';
 import { Observable, tap, catchError, throwError } from 'rxjs';
 import { Router } from '@angular/router';
 import { ToastmessageService } from './toastmessage.service';
@@ -34,11 +34,12 @@ export class AccountService {
     const now = Date.now();
 
     const expiresAt = applyNewExpiry
-      ? now + (remember ? 1000 * 60 * 3 : 1000 * 60 * 10) // 3 mins if checked, 1 min default
-      : user.expiresAt ?? now + 1000 * 60 * 1;
+      ? now + 1000 * 60 * 10 // fixed 10-minute expiry
+      : user.expiresAt ?? now + 1000 * 60 * 10;
 
     const userWithExpiry = { ...user, expiresAt };
     localStorage.setItem('user', JSON.stringify(userWithExpiry));
+    //localStorage.setItem('token', user.token);
     this.currentUserSignal.set(user);
     this.scheduleAutoLogout(expiresAt - now);
   }

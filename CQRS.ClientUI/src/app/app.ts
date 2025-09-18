@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { AccountService } from './_services/account.service';
 import { Header } from './layout/header/header';
 import { Footer } from './layout/footer/footer';
+
 @Component({
   selector: 'app-root',
   standalone: true,

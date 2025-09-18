@@ -9,8 +9,8 @@ import { SharedFormsModule } from '../shared/shared-forms/shared-forms-module';
 import { FormUtilsService } from '../_services/form-utils.service';
 import { generate, Observable, of, timer } from 'rxjs';
 import { finalize, switchMap, tap } from 'rxjs/operators';
-import { Product } from '../_models/product/product';
-import { CustomResultResponse } from '../_models/response/customresultresponse';
+import { Product } from '../_models/product/product.model';
+import { CustomResultResponse } from '../_models/response/customresultresponse.model';
 import { PaginatorService } from '../_services/paginator.service';
 import { ProductTable } from './product-table/product-table';
 import { FormAccessService } from '../_services/form-access.service';
@@ -59,7 +59,7 @@ export class ProductComponent implements OnInit {
   searchBox = signal('');
   tableLoading = signal(false);
 
-  //#region editable fields
+  //#region Initialization Functions
   readonly editableFields: string[] = [
     'modelCode',
     'description',
@@ -69,8 +69,6 @@ export class ProductComponent implements OnInit {
     'accessories',
     'stats',
   ];
-
-  //#endregion
 
   ngOnInit(): void {
     this.formMode = FormMode.New;
@@ -89,7 +87,7 @@ export class ProductComponent implements OnInit {
       .getAll()
       .pipe(
         switchMap((data) =>
-          timer(2000).pipe(
+          timer(1000).pipe(
             // delay for 2 seconds
             switchMap(() => {
               this.productList.set(data);
@@ -119,65 +117,9 @@ export class ProductComponent implements OnInit {
     this.selectedComponents.set(updated);
     this.productForm.get('components')?.setValue(updated.join(';'));
   }
-
-  //#region Generic Function
-  resetForm(): void {
-    this.formMode = FormMode.New;
-    this.selectedProduct = null;
-    this.showValidationAlert = false;
-
-    this.formUtils.resetWithDefaults(this.productForm, {
-      id: null,
-      modelCode: '',
-      description: '',
-      brand: '',
-      defaultJOQty: 0,
-      components: '',
-      accessories: 0,
-      stats: '',
-    });
-    this.selectedComponents.set([]);
-  }
-
-  private handleGenericResponse(
-    response: CustomResultResponse | null,
-    context: 'save' | 'cancel'
-  ): void {
-    if (!response) return;
-
-    const isSuccess = response.isSuccess;
-    const message = response.message;
-    const validationErrors = response.validationErrors;
-
-    if (isSuccess) {
-      const title =
-        context === 'save'
-          ? this.formMode === FormMode.Edit
-            ? 'Update Successful'
-            : 'Save Successful'
-          : 'Cancelled';
-
-      this.toastr.success(message, title);
-      this.resetForm();
-
-      if (context === 'save') {
-        this.updateSignalList();
-      }
-    } else {
-      const errorTitle =
-        context === 'save' ? 'Submission Error' : 'Cancellation Failed';
-
-      this.toastr.error(message, errorTitle);
-      this.toastr.showValidationWarnings(validationErrors);
-    }
-
-    if (context === 'cancel') {
-      this.loadProducts();
-    }
-  }
   //#endregion
 
-  //#region Submit/Update Functionality
+  //#region Submit/Update Functions
   openConfirmation(): void {
     this.showValidationAlert = false;
 
@@ -276,7 +218,7 @@ export class ProductComponent implements OnInit {
   }
   //#endregion
 
-  //#region Table Functionality
+  //#region Table Functions
   paginatedProductList = computed(() => {
     const search = this.searchBox().toLowerCase().trim();
     const page = this.currentPage();
@@ -386,6 +328,63 @@ export class ProductComponent implements OnInit {
 
   private finalizeCancellation(): void {
     this.isSaving = false;
+  }
+  //#endregion
+
+  //#region Generic Function
+  resetForm(): void {
+    this.formMode = FormMode.New;
+    this.selectedProduct = null;
+    this.showValidationAlert = false;
+
+    this.formUtils.resetWithDefaults(this.productForm, {
+      id: null,
+      modelCode: '',
+      description: '',
+      brand: '',
+      defaultJOQty: 0,
+      components: '',
+      accessories: 0,
+      stats: '',
+    });
+    this.selectedComponents.set([]);
+  }
+
+  private handleGenericResponse(
+    response: CustomResultResponse | null,
+    context: 'save' | 'cancel'
+  ): void {
+    if (!response) return;
+
+    const isSuccess = response.isSuccess;
+    const message = response.message;
+    const validationErrors = response.validationErrors;
+
+    if (isSuccess) {
+      const title =
+        context === 'save'
+          ? this.formMode === FormMode.Edit
+            ? 'Update Successful'
+            : 'Save Successful'
+          : 'Cancelled';
+
+      this.toastr.success(message, title);
+      this.resetForm();
+
+      if (context === 'save') {
+        this.updateSignalList();
+      }
+    } else {
+      const errorTitle =
+        context === 'save' ? 'Submission Error' : 'Cancellation Failed';
+
+      this.toastr.error(message, errorTitle);
+      this.toastr.showValidationWarnings(validationErrors);
+    }
+
+    if (context === 'cancel') {
+      this.loadProducts();
+    }
   }
   //#endregion
 }

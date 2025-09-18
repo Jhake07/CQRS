@@ -1,13 +1,19 @@
 @if (isUserLogged()) {
   <div class="d-flex">
-    <!-- Sidebar navigation -->
-    <app-header></app-header>
+    <!-- Content Wrapper -->
+    <div class="d-flex flex-column flex-grow-1">
+      
+      <!-- Topbar -->
+      <app-header></app-header>
 
-    <!-- Main content area -->
-    <main class="main-content flex-grow-1 p-4">
-      <router-outlet></router-outlet>
+      <!-- Main content area -->
+      <main class="flex-grow-1 p-5">
+        <router-outlet></router-outlet>
+      </main>
+
+      <!-- Footer -->
       <app-footer></app-footer>
-    </main>
+    </div>
   </div>
 } @else {
   <!-- Minimal layout for login or public pages -->
@@ -25,7 +31,7 @@
           <h5 class="modal-title">Session Expiring</h5>
         </div>
         <div class="modal-body">
-          <p>Your session will expire in few mins. Stay logged in?</p>
+          <p>Your session will expire in a few minutes. Stay logged in?</p>
         </div>
         <div class="modal-footer">
           <button class="btn btn-secondary" (click)="onForceLogout()">Log Out</button>

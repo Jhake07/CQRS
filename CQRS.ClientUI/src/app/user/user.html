@@ -17,30 +17,28 @@
                 <div class="col-md-4">
                     <label class="form-label">*First Name</label>
                     <input id="firstName" formControlName="firstName" type="text" class="form-control text-capitalize"
-                     [class.is-invalid]="userForm.get('firstName')?.touched && userForm.get('firstName')?.invalid"
-                        placeholder="First Name" 
-                        required (input)="updateUserName()" />
+                        [class.is-invalid]="userForm.get('firstName')?.touched && userForm.get('firstName')?.invalid"
+                        placeholder="First Name" required (input)="updateUserName()" />
                 </div>
-                
+
                 <div class="col-md-4">
                     <label class="form-label">*Last Name</label>
                     <input id="lastName" formControlName="lastName" type="text" class="form-control text-capitalize"
-                     [class.is-invalid]="userForm.get('lastName')?.touched && userForm.get('lastName')?.invalid"
-                        placeholder="Last Name" 
-                        required (input)="updateUserName()" />
+                        [class.is-invalid]="userForm.get('lastName')?.touched && userForm.get('lastName')?.invalid"
+                        placeholder="Last Name" required (input)="updateUserName()" />
                 </div>
 
                 <div class="col-md-4">
                     <label class="form-label">*Email</label>
-                    <input id="email" formControlName="email" type="email" class="form-control" required 
-                    [class.is-invalid]="userForm.get('email')?.touched && userForm.get('email')?.invalid"
-                        placeholder="Email Address" >
+                    <input id="email" formControlName="email" type="email" class="form-control" required
+                        [class.is-invalid]="userForm.get('email')?.touched && userForm.get('email')?.invalid"
+                        placeholder="Email Address">
                 </div>
 
                 <div class="col-md-6">
                     <label class="form-label">*Role</label>
-                    <select id="role" formControlName="role" class="form-select" 
-                    [class.is-invalid]="userForm.get('role')?.touched && userForm.get('role')?.invalid"
+                    <select id="role" formControlName="role" class="form-select"
+                        [class.is-invalid]="userForm.get('role')?.touched && userForm.get('role')?.invalid"
                         placeholder="User Role">
                         <option [value]="''" disabled>-- Select Role --</option>
                         <option [value]="'User'">User</option>
@@ -51,7 +49,7 @@
                 <div class="col-md-6">
                     <label class="form-label">*Status</label>
                     <select id="isActive" formControlName="isActive" class="form-select"
-                     [class.is-invalid]="userForm.get('isActive')?.touched && userForm.get('isActive')?.invalid"
+                        [class.is-invalid]="userForm.get('isActive')?.touched && userForm.get('isActive')?.invalid"
                         placeholder="User Status">
                         <option [ngValue]=null disabled>-- Select Status --</option>
                         <option [ngValue]=true>Active</option>
@@ -61,16 +59,15 @@
 
                 <div class="col-md-4">
                     <label class="form-label">*Username</label>
-                    <input id="username" formControlName="username" type="text" class="form-control" required
-                        readonly   
+                    <input id="username" formControlName="username" type="text" class="form-control" required readonly
                         [class.is-invalid]="userForm.get('username')?.touched && userForm.get('username')?.invalid"
-                        placeholder="Username"/>
+                        placeholder="Username" />
 
                     <div class="mt-1">
                         <small class="fw-bold fst-italic text-secondary text-dark">
                             Password format:
                             <span class="text-dark">
-                                Username + &#64; + current year 
+                                Username + &#64; + current year
                                 <br> Example: JDelaCruz&#64;2025
                                 <!-- &#64; is the HTML entity for @  -->
                             </span>
@@ -107,7 +104,7 @@
         <div class="card-header bg-light fw-semibold px-3 py-3">
             <div class="row align-items-center">
                 <div class="col">
-                    <i class="fa fa-table me-2"></i>Existing Records
+                    <i class="fa fa-table me-2"></i>User Records
                 </div>
                 <div class="col-auto">
                     <input type="text" class="form-control form-control-sm" style="width: 250px;" [value]="searchBox()"
@@ -118,11 +115,29 @@
 
         <div class="card-body px-3 py-4">
             <div class="table-responsive">
+                @if (tableLoading())
+                {
+                <div class="text-center py-5">
+                    <span class="spinner-border text-primary" role="status" aria-hidden="true"></span>
+                    <div class="mt-2 small text-muted">Loading User Reords...</div>
+                </div>
+                }
+                @else {
                 <app-user-table [userList]="paginatedUserList()" (sort)="handleSort($event)"
-                    (edit)="populateFormEdit($event)" (view)="populateFormView($event)" (reset)="resetUserPassword($event)"
-                    ></app-user-table>
+                    (edit)="populateFormEdit($event)" (view)="populateFormView($event)"
+                    (reset)="resetUserPassword($event)"></app-user-table>
+                }
             </div>
 
+            <app-paginator
+                [currentPage]="currentPage()"
+                [totalPages]="totalPages()"
+                [pageSize]="pageSize()"
+                (pageSizeChange)="pageSize.set($event)"
+                (pageChange)="currentPage.set($event)"
+            >
+
+            </app-paginator>
         </div>
     </div>
 </div>

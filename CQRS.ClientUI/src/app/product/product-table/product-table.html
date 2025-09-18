@@ -3,7 +3,7 @@
         <tr class="text-muted small">
             <th appSortableHeader [column]="'modelCode'" [direction]="sortColumn === 'modelCode' ? sortDirection : ''"
                 (sort)="sort.emit($event)">
-                Contract
+                Model
                 <i class="ms-1 fa" [ngClass]="{
                     'fa-sort': sortColumn !== 'modelCode' || sortDirection === '',
                     'fa-sort-up': sortColumn === 'modelCode' && sortDirection === 'asc',

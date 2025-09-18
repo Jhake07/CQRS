@@ -11,8 +11,8 @@ import { FormAccessService } from '../_services/form-access.service';
 import { FormUtilsService } from '../_services/form-utils.service';
 import { PaginatorService } from '../_services/paginator.service';
 
-import { BatchSerial } from '../_models/batchserial/batchserial';
-import { CustomResultResponse } from '../_models/response/customresultresponse';
+import { BatchSerial } from '../_models/batchserial/batchserial.model';
+import { CustomResultResponse } from '../_models/response/customresultresponse.model';
 import { FormMode } from '../_enums/form-mode.enum';
 import { BatchStatus } from '../_enums/batchstatus.enum';
 
@@ -20,6 +20,8 @@ import { SharedFormsModule } from '../shared/shared-forms/shared-forms-module';
 import { SharedTablesModule } from '../shared/shared-tables/shared-tables-module';
 import { signal, computed } from '@angular/core';
 import { BatchTable } from './batch-table/batch-table';
+import { Product } from '../_models/product/product.model';
+import { ProductService } from '../_services/product.service';
 
 @Component({
   selector: 'app-batchserial',
@@ -37,6 +39,7 @@ export class Batchserial implements OnInit {
   private formUtils = inject(FormUtilsService);
   private paginator = inject(PaginatorService);
   private cdRef = inject(ChangeDetectorRef);
+  private productService = inject(ProductService);
   StatusType = BatchStatus;
   FormMode = FormMode;
   statusOptions: string[] = Object.values(BatchStatus);
@@ -51,10 +54,14 @@ export class Batchserial implements OnInit {
 
   pageSize = signal<number>(5);
   currentPage = signal(1);
+  tableLoading = signal(false);
   sortColumn = signal('');
   sortDirection = signal<'' | 'asc' | 'desc'>('');
   searchBox = signal('');
 
+  readonly productList = signal<Product[]>([]);
+
+  //#region Initialization Functions
   readonly editableFields: string[] = [
     'contractNo',
     'customer',
@@ -67,6 +74,7 @@ export class Batchserial implements OnInit {
     this.formMode = FormMode.New;
     this.initializeForm();
     this.loadBatchSerials();
+    this.loadProducts();
   }
 
   private initializeForm(): void {
@@ -75,20 +83,41 @@ export class Batchserial implements OnInit {
   }
 
   private loadBatchSerials(): void {
-    this.batchService.getAll().subscribe({
-      next: (data) => {
-        this.batchSerialList.set(data); // set the signal value
-      },
-      error: (error) => {
-        const msg =
-          error.status === 404
-            ? 'Batch serials not found. Please check the API.'
-            : 'An unexpected error occurred.';
-        this.toast.error(msg, 'Load Error');
-      },
+    this.tableLoading.set(true);
+    this.batchService
+      .getAll()
+      .pipe(
+        switchMap((data) =>
+          timer(1000).pipe(
+            switchMap(() => {
+              this.batchSerialList.set(data);
+              return [];
+            })
+          )
+        ),
+        finalize(() => this.tableLoading.set(false))
+      )
+      .subscribe({
+        error: (error) => {
+          const msg =
+            error.status === 404
+              ? 'Batch serials not found. Please check the API.'
+              : 'An unexpected error occurred.';
+          this.toast.error(msg, 'Load Error');
+        },
+      });
+  }
+
+  private loadProducts(): void {
+    this.productService.getAll().subscribe({
+      next: (products) => this.productList.set(products),
+      error: () => this.toast.error('Failed to load products', 'Load Error'),
     });
   }
 
+  //#endregion
+
+  //#region Submit/Update Functions
   openConfirmation(): void {
     this.showValidationAlert = false;
 
@@ -188,6 +217,60 @@ export class Batchserial implements OnInit {
       },
     });
   }
+  //#endregion
+
+  //#region Table Functions
+  paginatedBatchList = computed(() => {
+    const search = this.searchBox().toLowerCase().trim();
+    const page = this.currentPage();
+    const size = this.pageSize();
+
+    let filtered = this.batchSerialList().filter((item) => {
+      return (
+        item.contractNo?.toLowerCase().includes(search) ||
+        item.customer?.toLowerCase().includes(search) ||
+        item.address?.toLowerCase().includes(search) ||
+        item.docNo?.toLowerCase().includes(search) ||
+        item.item_ModelCode?.toLowerCase().includes(search) ||
+        item.status?.toLowerCase().includes(search) ||
+        item.batchQty?.toString().includes(search)
+      );
+    });
+
+    if (this.sortColumn() && this.sortDirection()) {
+      filtered.sort((a, b) => {
+        const valA = a[this.sortColumn() as keyof BatchSerial];
+        const valB = b[this.sortColumn() as keyof BatchSerial];
+        if (valA == null || valB == null) return 0;
+        return this.sortDirection() === 'asc'
+          ? valA > valB
+            ? 1
+            : -1
+          : valA < valB
+          ? 1
+          : -1;
+      });
+    }
+
+    return this.paginator.getPaginated(filtered, size, page);
+  });
+
+  totalPages = computed(() =>
+    this.paginator.getTotalPages(this.batchSerialList(), this.pageSize())
+  );
+
+  handleSort(event: { column: string; direction: '' | 'asc' | 'desc' }): void {
+    this.sortColumn.set(event.column); //updates the signal value
+    this.sortDirection.set(event.direction); //updates the signal value
+  }
+
+  applyFieldAccess(): void {
+    this.formAccess.applyAccess(
+      this.batchSerialForm,
+      this.formMode,
+      this.editableFields
+    );
+  }
 
   populateFormEdit(batch: BatchSerial): void {
     this.formMode = FormMode.Edit;
@@ -202,20 +285,6 @@ export class Batchserial implements OnInit {
     this.batchSerialForm.disable();
     this.batchSerialForm.patchValue(batch);
     this.selectedBatchSerial = batch;
-  }
-
-  resetForm(): void {
-    this.formMode = FormMode.New;
-    this.selectedBatchSerial = null;
-    this.showValidationAlert = false;
-
-    this.formUtils.resetWithDefaults(this.batchSerialForm, {
-      id: null,
-      orderQty: 0,
-      deliverQty: 0,
-      status: 'Open',
-      batchQty: 0,
-    });
   }
 
   cancelBatchSerial(id: number): void {
@@ -266,15 +335,9 @@ export class Batchserial implements OnInit {
         },
       });
   }
+  //#endregion
 
-  applyFieldAccess(): void {
-    this.formAccess.applyAccess(
-      this.batchSerialForm,
-      this.formMode,
-      this.editableFields
-    );
-  }
-
+  //#region Generic Funtions
   allowOnlyDigits(event: KeyboardEvent): void {
     const key = event.key;
     if (!/^\d$/.test(key)) {
@@ -282,47 +345,18 @@ export class Batchserial implements OnInit {
     }
   }
 
-  handleSort(event: { column: string; direction: '' | 'asc' | 'desc' }): void {
-    this.sortColumn.set(event.column); //updates the signal value
-    this.sortDirection.set(event.direction); //updates the signal value
-  }
+  resetForm(): void {
+    this.formMode = FormMode.New;
+    this.selectedBatchSerial = null;
+    this.showValidationAlert = false;
 
-  paginatedBatchList = computed(() => {
-    const search = this.searchBox().toLowerCase().trim();
-    const page = this.currentPage();
-    const size = this.pageSize();
-
-    let filtered = this.batchSerialList().filter((item) => {
-      return (
-        item.contractNo?.toLowerCase().includes(search) ||
-        item.customer?.toLowerCase().includes(search) ||
-        item.address?.toLowerCase().includes(search) ||
-        item.docNo?.toLowerCase().includes(search) ||
-        item.item_ModelCode?.toLowerCase().includes(search) ||
-        item.status?.toLowerCase().includes(search) ||
-        item.batchQty?.toString().includes(search)
-      );
+    this.formUtils.resetWithDefaults(this.batchSerialForm, {
+      id: null,
+      orderQty: 0,
+      deliverQty: 0,
+      status: 'Open',
+      batchQty: 0,
     });
-
-    if (this.sortColumn() && this.sortDirection()) {
-      filtered.sort((a, b) => {
-        const valA = a[this.sortColumn() as keyof BatchSerial];
-        const valB = b[this.sortColumn() as keyof BatchSerial];
-        if (valA == null || valB == null) return 0;
-        return this.sortDirection() === 'asc'
-          ? valA > valB
-            ? 1
-            : -1
-          : valA < valB
-          ? 1
-          : -1;
-      });
-    }
-
-    return this.paginator.getPaginated(filtered, size, page);
-  });
-
-  totalPages = computed(() =>
-    this.paginator.getTotalPages(this.batchSerialList(), this.pageSize())
-  );
+  }
+  //#endregion
 }
