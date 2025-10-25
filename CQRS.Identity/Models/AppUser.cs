@@ -9,5 +9,6 @@ namespace CQRS.Identity.Models
         public bool IsActive { get; set; }
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
         public DateTime? ModifiedDate { get; set; } = DateTime.UtcNow;
+        public required string CreatedBy { get; set; }
     }
 }

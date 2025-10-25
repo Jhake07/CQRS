@@ -130,13 +130,12 @@
             </div>
 
             <app-paginator
-                [currentPage]="currentPage()"
-                [totalPages]="totalPages()"
-                [pageSize]="pageSize()"
-                (pageSizeChange)="pageSize.set($event)"
+                [currentPage]="currentPage"
+                [pageSize]="pageSize"
+                [totalItems]="totalFilteredItems"
                 (pageChange)="currentPage.set($event)"
+                (pageSizeChange)="pageSize.set($event)"
             >
-
             </app-paginator>
         </div>
     </div>

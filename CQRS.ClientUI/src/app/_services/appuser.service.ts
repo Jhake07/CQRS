@@ -7,6 +7,7 @@ import { CustomResultResponse } from '../_models/response/customresultresponse.m
 import { UpdateUserRequest } from '../_models/appuser/updateuserrequest.model';
 import { ViewUserRequest } from '../_models/appuser/viewuserrequest.model';
 import { ResetUserRequest } from '../_models/appuser/resetuserrequest.model';
+import { AccountService } from './account.service';
 
 @Injectable({
   providedIn: 'root',
@@ -14,16 +15,21 @@ import { ResetUserRequest } from '../_models/appuser/resetuserrequest.model';
 export class AppuserService {
   private readonly baseUrl = `${environment.apiUrl}userauth`;
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private accountService: AccountService
+  ) {}
 
   getAll(): Observable<ViewUserRequest[]> {
     return this.http.get<ViewUserRequest[]>(this.baseUrl);
   }
 
   save(payload: RegisterUserRequest): Observable<CustomResultResponse> {
+    const createdBy = this.accountService.getLoggedInUserId();
+    const enrichedPayload = { ...payload, createdBy };
     return this.http.post<CustomResultResponse>(
       `${this.baseUrl}/register`,
-      payload
+      enrichedPayload
     );
   }
 

@@ -61,7 +61,7 @@ namespace CQRS.Identity.Services
 
             var response = new AuthResponse
             {
-                Id = user.Id,
+                //Id = user.Id,
                 Token = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken),
                 Email = user.Email,
                 UserName = user.UserName,
@@ -109,7 +109,9 @@ namespace CQRS.Identity.Services
                     EmailConfirmed = true,
                     IsActive = true,
                     CreatedDate = DateTime.UtcNow,
-                    ModifiedDate = null
+                    ModifiedDate = null,
+                    CreatedBy = request.CreatedBy
+
                 };
 
                 var result = await _userManager.CreateAsync(user, defaultPassword);
@@ -376,13 +378,13 @@ namespace CQRS.Identity.Services
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email),
                 new Claim("firstName", user.FirstName ?? ""),
-                new Claim("isActive", user.IsActive.ToString()),
-                new Claim("uid", user.Id),
-
+                //new Claim("isActive", user.IsActive.ToString()),
+                new Claim("id", user.Id),
 
                 new Claim(ClaimTypes.Name, user.UserName),        // Enables User.Identity.Name
                 new Claim(ClaimTypes.Email, user.Email),          // Enables ClaimTypes.Email
-                new Claim(ClaimTypes.Role, role)
+                new Claim(ClaimTypes.Role, role),
+
 
             }
             .Union(userClaims)
@@ -396,7 +398,7 @@ namespace CQRS.Identity.Services
                issuer: _jwtSettings.Issuer,
                audience: _jwtSettings.Audience,
                claims: claims,
-               expires: DateTime.Now.AddMinutes(_jwtSettings.Duration),
+               expires: DateTime.UtcNow.AddMinutes(_jwtSettings.Duration),
                signingCredentials: signingCredentials);
 
             return jwtSecurityToken;

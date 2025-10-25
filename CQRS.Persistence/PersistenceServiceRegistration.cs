@@ -16,7 +16,7 @@ namespace CQRS.Persistence
             {
                 options.UseSqlServer(configuration.GetConnectionString("CQRS_CleanArchConnectionString"));
             });
-
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
             services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             services.AddScoped<IBatchSerialRepository, BatchSerialRepository>();
             services.AddScoped<IMainSerialRepository, MainSerialRepository>();

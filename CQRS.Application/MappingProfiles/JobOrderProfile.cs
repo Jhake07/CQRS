@@ -1,5 +1,7 @@
 ﻿using AutoMapper;
+using CQRS.Application.DTO;
 using CQRS.Application.Features.JobOrder.Commands.Create;
+using CQRS.Application.Features.JobOrder.Commands.Update;
 using CQRS.Domain;
 
 namespace CQRS.Application.MappingProfiles
@@ -9,6 +11,8 @@ namespace CQRS.Application.MappingProfiles
         public JobOrderProfile()
         {
             CreateMap<CreateJobOrderCommand, JobOrder>();
+            CreateMap<UpdateJobOrderCommand, JobOrder>();
+            CreateMap<JobOrderDto, JobOrder>().ReverseMap();
         }
     }
 }

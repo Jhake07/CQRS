@@ -15,8 +15,8 @@
             <th class="d-none d-sm-table-cell">Customer</th>
             <th class="d-none d-md-table-cell">Address</th>
             <th class="d-none d-lg-table-cell">Document #</th>
-            <th>Serial Prefix</th>
-            <th>Qty</th>
+            <th class="d-none d-lg-table-cell">Batch Qty</th>
+            <th class="d-none d-lg-table-cell">Remaining Qty</th>
             <th appSortableHeader [column]="'status'" [direction]="sortColumn === 'status' ? sortDirection : ''"
                 (sort)="sort.emit($event)">
                 Status
@@ -41,8 +41,8 @@
             <td class="d-none d-sm-table-cell">{{ batch.customer }}</td>
             <td class="d-none d-md-table-cell">{{ batch.address }}</td>
             <td class="d-none d-lg-table-cell">{{ batch.docNo }}</td>
-            <td>{{ batch.serialPrefix }}</td>
             <td>{{ batch.batchQty }}</td>
+            <td>{{ batch.remainingQty }}</td>
             <td>
                 <span class="badge" [ngClass]="batch.status | statusClass">
                     {{ batch.status }}

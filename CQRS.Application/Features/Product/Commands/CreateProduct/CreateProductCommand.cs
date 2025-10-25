@@ -18,5 +18,6 @@ namespace CQRS.Application.Features.Product.Commands.CreateProduct
         public int Accessories { get; set; }
 
         public required string Stats { get; set; }
+        public required string CreatedBy { get; set; }
     }
 }

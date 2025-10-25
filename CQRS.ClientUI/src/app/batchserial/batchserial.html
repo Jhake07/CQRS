@@ -135,6 +135,7 @@
           <div class="col">
             <i class="fa fa-table me-2"></i>Batch Contract Records
           </div>
+        
           <div class="col-auto">
             <input
               type="text"
@@ -149,6 +150,20 @@
       </div>
 
       <div class="card-body px-3 py-4">
+        <ul class="nav nav-tabs mb-3">
+             @for (tab of statusTabs; track tab) {
+              <li class="nav-item">
+                <button
+                  class="nav-link"
+                  [class.active]="activeStatus() === tab"
+                  (click)="activeStatus.set(tab) ; currentPage.set(1)"
+                >
+                 
+                  {{ tab }} <span class="text-muted">({{ statusCounts()[tab] }})</span>
+                </button>
+              </li>
+            }
+        </ul>
         <div class="table-responsive">
           @if (tableLoading())
           {
@@ -168,13 +183,14 @@
           }
         </div>
 
-        <app-paginator
-          [currentPage]="currentPage()"
-          [totalPages]="totalPages()"
-          [pageSize]="pageSize()"
-          (pageSizeChange)="pageSize.set($event)"
+       <app-paginator
+          [currentPage]="currentPage"
+          [pageSize]="pageSize"
+          [totalItems]="totalFilteredItems"
           (pageChange)="currentPage.set($event)"
-        ></app-paginator>
+          (pageSizeChange)="pageSize.set($event)"
+        >
+        </app-paginator>
       </div>
   </div>
 </div>

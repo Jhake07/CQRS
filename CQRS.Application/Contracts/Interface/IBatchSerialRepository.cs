@@ -11,5 +11,8 @@ namespace CQRS.Application.Contracts.Interface
         Task<bool> CheckBatchContractNo(string contractNo);
         Task<bool> CheckMainSerialPrefix(string serialPrefix);
         Task<IDbContextTransaction> BeginTransactionAsync();
+        Task<List<BatchSerial>> GetAvailableBatchSerial();
+        Task UpdateBatchOrderQty(string contractNo, int orderQty);
+
     }
 }

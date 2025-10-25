@@ -20,9 +20,4 @@
     <ProjectReference Include="..\CQRS.Domain\CQRS.Domain.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Features\JobOrder\Commands\Update\" />
-    <Folder Include="Features\JobOrder\Queries\" />
-  </ItemGroup>
-
 </Project>

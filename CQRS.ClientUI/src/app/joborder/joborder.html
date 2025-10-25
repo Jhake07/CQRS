@@ -1,1 +1,195 @@
-<p>joborder works!</p>
+<div class="container mt-4">
+   <!-- Form Card -->
+  <div class="card shadow-sm border-0">
+    <div class="card-header bg-light fw-semibold">
+      <i class="fa fa-plus-circle me-2"></i>Create New Job Order
+    </div>
+    <div class="card-body">
+      @if (showValidationAlert && jobOrderForm.invalid) {
+        <div class="alert alert-danger py-2 px-3 small mb-3">
+          <i class="fa fa-exclamation-circle me-2"></i>
+          Check the data in the required fields (<span class="text-danger fw-bold">*</span>).
+        </div>
+      }
+
+      <form [formGroup]="jobOrderForm" class="row g-3">       
+        <div class="col-md-6">
+          <label for="batchSerial_ContractNo" class="form-label">*Contract No</label>
+            <select
+              id="batchSerial_ContractNo"
+              formControlName="batchSerial_ContractNo"
+              class="form-select form-select-sm"
+              (click)="loadBatchSerials()"             
+              [class.is-invalid]="jobOrderForm.get('batchSerial_ContractNo')?.touched && jobOrderForm.get('batchSerial_ContractNo')?.invalid"
+              aria-describedby="contractNoHelp"
+            >
+              <option value="" disabled>Select Batch Contract#</option>
+
+              @for (batch of batchContractList(); track batch.id) {
+                <option [value]="batch.contractNo">
+                  {{ batch.contractNo }}
+                </option>
+              }
+            </select>
+        </div>
+
+         <div class="col-md-6">
+        <label for="remainingQty" class="form-label">*Batch Remaining Qty</label>
+        <input id="remainingQty" formControlName="remainingQty" type="number" class="form-control form-control-sm"
+          [class.is-invalid]="jobOrderForm.get('remainingQty')?.touched && jobOrderForm.get('remainingQty')?.invalid"
+          placeholder="Batch Remaining Qty"
+          />
+          
+      </div>
+       
+        <div class="col-md-6">
+        <label for="joNo" class="form-label">*JO Number</label>
+        <input id="joNo" formControlName="joNo" type="text" class="form-control form-control-sm"
+          [class.is-invalid]="jobOrderForm.get('joNo')?.touched && jobOrderForm.get('joNo')?.invalid"
+          placeholder="Job Order #" />
+      </div>
+
+        <div class="col-md-6">
+          <label for="isNo" class="form-label">*IS No.</label>
+          <input id="isNo" formControlName="isNo" type="text" class="form-control form-control-sm"
+            [class.is-invalid]="jobOrderForm.get('isNo')?.touched && jobOrderForm.get('isNo')?.invalid"
+            placeholder="Serial Prefix" />
+        </div>
+
+                <div class="col-md-4">
+          <label for="orderType" class="form-label">*Order Type</label>
+          <select
+            id="orderType"
+            formControlName="orderType"
+            class="form-select form-select-sm"
+            [class.is-invalid]="jobOrderForm.get('orderType')?.touched && jobOrderForm.get('orderType')?.invalid"
+          >
+            <option value="" disabled>-- Select Order Type --</option>
+            @for (ordertype of orderTypeOptions(); track ordertype.value) {
+              <option [value]="ordertype.value">
+                {{ ordertype.label }}
+              </option>
+            }
+          </select>
+        </div>
+
+        <div class="col-md-4">
+          <label for="line" class="form-label">*Line#</label>
+          <select
+            id="line"
+            formControlName="line"
+            class="form-select form-select-sm"
+            [class.is-invalid]="jobOrderForm.get('line')?.touched && jobOrderForm.get('line')?.invalid"
+          >
+            <option value="" disabled>-- Select Line --</option>
+
+            @for (line of lineOptions(); track line.value) {
+              <option [value]="line.value">
+                {{ line.label }}
+              </option>
+            }
+          </select>
+        </div>
+             
+        <div class="col-md-4">
+          <label for="orderQty" class="form-label">*Order Qty</label>
+          <input id="orderQty" formControlName="orderQty" type="number" class="form-control form-control-sm"
+            [class.is-invalid]="jobOrderForm.get('orderQty')?.touched && jobOrderForm.get('orderQty')?.invalid"
+            placeholder="Quantity" />
+        </div>
+     
+                                    
+        <!-- Submit/Reset Buttons -->
+        <div class="col-12 text-end mt-3">
+          @if (formMode !== FormMode.View) {
+            <button type="button" class="btn btn-primary btn-sm px-4" (click)="openConfirmation()" [disabled]="isSaving"
+              [attr.title]="jobOrderForm.invalid ? 'Please complete all required fields.' : null">
+              @if (isSaving) {
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                Saving...
+              } @else {
+                <i class="fa fa-save me-2"></i>
+                {{ formMode === FormMode.Edit ? 'Update' : 'Save' }}
+              }
+            </button>
+          }
+
+          @if (formMode === FormMode.View || formMode === FormMode.Edit && !isSaving) {
+            <button type="button" class="btn btn-danger btn-sm ms-2" (click)="resetForm()">
+              <i class="fa fa-times-circle me-1"></i> Close
+            </button>
+          }
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <!-- Table Card -->
+  <div class="card mt-4 shadow-sm border-0">
+      <div class="card-header bg-light fw-semibold px-3 py-3">
+        <div class="row align-items-center">
+          <div class="col">
+            <i class="fa fa-table me-2"></i>Job Order Records
+          </div>        
+
+          <div class="col-auto">
+            <input
+              type="text"
+              class="form-control form-control-sm"
+              style="width: 250px;"
+              [value]="searchBox()"
+              (input)="searchBox.set($any($event.target).value)"
+              placeholder="Search here"
+            />
+          </div>
+        </div>
+      </div>
+
+      <div class="card-body px-3 py-4">
+        <ul class="nav nav-tabs mb-3">
+             @for (tab of statusTabs; track tab) {
+              <li class="nav-item">
+                <button
+                  class="nav-link"
+                  [class.active]="activeStatus() === tab"
+                  (click)="activeStatus.set(tab) "
+                >
+                 
+                  {{ tab }} <span class="text-muted">({{ statusCounts()[tab] }})</span>
+                </button>
+              </li>
+            }
+        </ul>
+
+        <div class="table-responsive">
+          @if (tableLoading())
+          {
+            <div class="text-center py-5">
+              <span class="spinner-border text-primary" role="status" aria-hidden="true"></span>
+              <div class="mt-2 small text-muted">Loading Job order records...</div>
+            </div>
+          }
+          @else {          
+          <app-joborder-table
+            [joborderList]="paginatedJobOrderList()"
+            (sort)="handleSort($event)"
+            (edit)="populateFormEdit($event)"
+            (view)="populateFormView($event)"
+            (cancel)="cancelJobOrder($event)"
+
+          ></app-joborder-table>
+          }
+        </div>
+
+        <app-paginator
+          [currentPage]="currentPage"
+          [pageSize]="pageSize"
+          [totalItems]="totalFilteredItems"
+          (pageChange)="currentPage.set($event)"
+          (pageSizeChange)="pageSize.set($event)"
+        >
+        </app-paginator>
+      </div>
+  </div>
+</div>

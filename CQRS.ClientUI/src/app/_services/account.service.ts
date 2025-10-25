@@ -5,6 +5,7 @@ import { AuthResponse } from '../_models/response/authresponse.model';
 import { Observable, tap, catchError, throwError } from 'rxjs';
 import { Router } from '@angular/router';
 import { ToastmessageService } from './toastmessage.service';
+import { jwtDecode } from 'jwt-decode';
 
 @Injectable({ providedIn: 'root' })
 export class AccountService {
@@ -126,6 +127,19 @@ export class AccountService {
     if (this.logoutTimer) {
       clearTimeout(this.logoutTimer);
       this.logoutTimer = null;
+    }
+  }
+
+  getLoggedInUserId(): string {
+    const raw = localStorage.getItem('user');
+    if (!raw) return '';
+
+    try {
+      const parsed: AuthResponse = JSON.parse(raw);
+      const decoded: any = jwtDecode(parsed.token);      
+      return decoded?.id?.toString() ?? ''; // or decoded.user_id depending on your token claim
+    } catch {
+      return '';
     }
   }
 }

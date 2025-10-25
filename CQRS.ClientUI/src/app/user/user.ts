@@ -54,6 +54,29 @@ export class User implements OnInit {
   currentYear = new Date().getFullYear();
   tableLoading = signal(false);
 
+  readonly totalFilteredItems = computed(() => this.filteredUserList().length);
+  readonly filteredUserList = computed(() => {
+    const status = this.activeStatus();
+    const search = this.searchBox().toLowerCase();
+
+    return this.userList()
+      .filter((user) => status === 'All' || user.isActive === status)
+      .filter(
+        (user) =>
+          user.firstName?.toLowerCase().includes(search) ||
+          user.lastName?.toLowerCase().includes(search)
+      );
+  });
+
+  readonly statusTabs = [
+    'All',
+    'Open',
+    'In Progress',
+    'Cancelled',
+    'Completed',
+  ] as const;
+  readonly activeStatus = signal<(typeof this.statusTabs)[number]>('All');
+
   //#region Initialization Functions
   ngOnInit(): void {
     this.formMode = FormMode.New;

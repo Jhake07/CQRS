@@ -38,7 +38,7 @@ namespace CQRS.Application.Features.BatchSerial.Commands.DeleteBatchSerial
 
                     return new CustomResultResponse
                     {
-                        IsSuccess = true,
+                        IsSuccess = false,
                         Message = $"Batch Contract is already in '{batchSerial.Status}' status.",
                         Id = batchSerial.ContractNo.ToString()
                     };

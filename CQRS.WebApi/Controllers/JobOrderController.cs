@@ -1,4 +1,9 @@
-﻿using CQRS.Application.Features.JobOrder.Commands.Create;
+﻿using CQRS.Application.DTO;
+using CQRS.Application.Features.JobOrder.Commands.Create;
+using CQRS.Application.Features.JobOrder.Commands.Delete;
+using CQRS.Application.Features.JobOrder.Commands.Update;
+using CQRS.Application.Features.JobOrder.Queries.GetAll;
+using CQRS.Application.Features.JobOrder.Queries.GetById;
 using CQRS.Application.Shared.Exceptions;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -16,16 +21,19 @@ namespace CQRS.WebApi.Controllers
 
         // GET: api/<JobOrderController>
         [HttpGet]
-        public IEnumerable<string> Get()
+        public async Task<List<JobOrderDto>> Get()
         {
-            return new string[] { "value1", "value2" };
+            var joborders = await _mediator.Send(new GetJobOrderQuery());
+            return joborders;
         }
 
         // GET api/<JobOrderController>/5
         [HttpGet("{id}")]
-        public string Get(int id)
+        public async Task<JobOrderDto> Get(int id)
         {
-            return "value";
+            var joborder = await _mediator.Send(new GetJobOrderByIdQuery(id));
+
+            return joborder;
         }
 
         // POST api/<JobOrderController>
@@ -78,14 +86,84 @@ namespace CQRS.WebApi.Controllers
 
         // PUT api/<JobOrderController>/5
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        public async Task<ActionResult> Put(int id, [FromBody] UpdateJobOrderCommand updateJobOrder)
         {
+            if (updateJobOrder == null || id != updateJobOrder.Id)
+            {
+                _logger.LogWarning("Received invalid details for Job Order Update.");
+                return BadRequest("Invalid request data.");
+            }
+            try
+            {
+                if (updateJobOrder.Id != id)
+                {
+                    _logger.LogWarning("Mismatch between route ID ({Id}) and request ID ({RequestId}).", id, updateJobOrder.Id);
+                    return BadRequest("Route ID and body ID must match.");
+                }
+
+                // Send the command to the mediator
+                var response = await _mediator.Send(updateJobOrder);
+
+                if (response == null || string.IsNullOrEmpty(response.Id))
+                {
+                    _logger.LogWarning("Failed to update Job Order details. No valid data was returned.");
+                    return BadRequest(response);
+                }
+                return Ok(response);
+            }
+            catch (BadRequestException ex)
+            {
+                _logger.LogError(ex, "Validation or bad request error occurred while updating Job Order.");
+                return BadRequest(new
+                {
+                    Message = "Controller Validation failed.",
+                    ex.ValidationErrors // Return structured validation errors here
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An unexpected error occurred while updating Job Order.");
+                return StatusCode(500, new
+                {
+                    Message = "An internal server error occurred. Please try again later.",
+                    Details = ex.Message // Optional: Include this for debugging purposes
+                });
+            }
         }
 
         // DELETE api/<JobOrderController>/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public async Task<ActionResult> Delete(int id)
         {
+            if (id <= 0)
+            {
+                _logger.LogWarning("Received invalid ID for Job Order Deletion: {Id}", id);
+                return BadRequest("Invalid ID.");
+            }
+
+            try
+            {
+                var response = await _mediator.Send(new DeleteJobOrderCommand { Id = id });
+
+                if (response == null || string.IsNullOrEmpty(response.Id))
+                {
+                    _logger.LogWarning("Failed to cancel Job Order. No valid data was returned for Id: {Id}", id);
+                    return BadRequest(response);
+                }
+
+                _logger.LogInformation("Job Order with Id {Id} successfully cancelled.", id);
+                return Ok(response);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unexpected error during batch serial cancellation: {Id}", id);
+
+                return StatusCode(500, new
+                {
+                    Message = "An internal server error occurred.",
+                    Details = ex.Message
+                });
+            }
         }
     }
 }

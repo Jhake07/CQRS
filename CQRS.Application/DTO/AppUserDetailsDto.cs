@@ -10,5 +10,6 @@
         public DateTime? ModifiedDate { get; set; } = DateTime.UtcNow;
         public string? Username { get; set; } = string.Empty;
         public string Role { get; set; } = string.Empty;
+        public required string CreatedBy { get; set; }
     }
 }

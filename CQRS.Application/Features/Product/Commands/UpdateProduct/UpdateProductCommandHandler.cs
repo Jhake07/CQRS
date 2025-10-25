@@ -43,7 +43,7 @@ namespace CQRS.Application.Features.Product.Commands.UpdateProduct
                 // Map Entity updates                
                 _mapper.Map(request, product);
 
-                // check if the updated code is existing, if not do the update
+                // Update Database
                 await _productRepository.UpdateAsync(product);
 
                 _logger.LogInformation("Product successfully updated for Model: {ModelCode}", request.ModelCode);

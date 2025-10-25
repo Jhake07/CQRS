@@ -4,6 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { Product } from '../_models/product/product.model';
 import { CustomResultResponse } from '../_models/response/customresultresponse.model';
+import { AccountService } from './account.service';
 
 @Injectable({
   providedIn: 'root',
@@ -11,7 +12,10 @@ import { CustomResultResponse } from '../_models/response/customresultresponse.m
 export class ProductService {
   private readonly baseUrl = `${environment.apiUrl}product`;
 
-  constructor(private http: HttpClient) {}
+  constructor(
+    private http: HttpClient,
+    private accountService: AccountService
+  ) {}
 
   getAll(): Observable<Product[]> {
     return this.http.get<Product[]>(this.baseUrl);
@@ -26,7 +30,9 @@ export class ProductService {
   }
 
   saveProduct(payload: Product): Observable<CustomResultResponse> {
-    return this.http.post<CustomResultResponse>(this.baseUrl, payload);
+    const createdBy = this.accountService.getLoggedInUserId();
+    const enrichedPayload = { ...payload, createdBy };
+    return this.http.post<CustomResultResponse>(this.baseUrl, enrichedPayload);
   }
 
   updateProduct(

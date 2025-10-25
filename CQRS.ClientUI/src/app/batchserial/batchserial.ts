@@ -61,6 +61,19 @@ export class Batchserial implements OnInit {
 
   readonly productList = signal<Product[]>([]);
 
+  readonly totalFilteredItems = computed(
+    () => this.filteredBatchSErialList().length
+  );
+  readonly activeStatus = signal<(typeof this.statusTabs)[number]>('All');
+  readonly statusTabs = [
+    'All',
+    'Open',
+    'In Progress',
+    'Cancelled',
+    'Completed',
+    'Close',
+  ] as const;
+
   //#region Initialization Functions
   readonly editableFields: string[] = [
     'contractNo',
@@ -208,6 +221,17 @@ export class Batchserial implements OnInit {
         res?.message
           ? this.toast.showDetailedError(res)
           : this.toast.error('Unexpected error format.', 'Error');
+
+        // Restore form state on error
+        const originalJobOrder: BatchSerial = {
+          ...this.selectedBatchSerial!,
+          id: this.selectedBatchSerial!.id!,
+        };
+
+        setTimeout(() => {
+          this.populateFormEdit(originalJobOrder);
+        }, 0);
+
         this.isSaving = false;
       },
       complete: () => {
@@ -220,44 +244,53 @@ export class Batchserial implements OnInit {
   //#endregion
 
   //#region Table Functions
-  paginatedBatchList = computed(() => {
-    const search = this.searchBox().toLowerCase().trim();
-    const page = this.currentPage();
-    const size = this.pageSize();
+  readonly filteredBatchSErialList = computed(() => {
+    const status = this.activeStatus();
+    const search = this.searchBox().toLowerCase();
 
-    let filtered = this.batchSerialList().filter((item) => {
-      return (
-        item.contractNo?.toLowerCase().includes(search) ||
-        item.customer?.toLowerCase().includes(search) ||
-        item.address?.toLowerCase().includes(search) ||
-        item.docNo?.toLowerCase().includes(search) ||
-        item.item_ModelCode?.toLowerCase().includes(search) ||
-        item.status?.toLowerCase().includes(search) ||
-        item.batchQty?.toString().includes(search)
+    return this.batchSerialList()
+      .filter((batch) => status === 'All' || batch.status === status)
+      .filter(
+        (batch) =>
+          batch.contractNo?.toLowerCase().includes(search) ||
+          batch.docNo?.toLowerCase().includes(search) ||
+          batch.customer?.toLowerCase().includes(search) ||
+          batch.address?.toLowerCase().includes(search) ||
+          batch.item_ModelCode?.toLowerCase().includes(search) ||
+          batch.status?.toLowerCase().includes(search) ||
+          batch.batchQty?.toString().includes(search)
       );
-    });
-
-    if (this.sortColumn() && this.sortDirection()) {
-      filtered.sort((a, b) => {
-        const valA = a[this.sortColumn() as keyof BatchSerial];
-        const valB = b[this.sortColumn() as keyof BatchSerial];
-        if (valA == null || valB == null) return 0;
-        return this.sortDirection() === 'asc'
-          ? valA > valB
-            ? 1
-            : -1
-          : valA < valB
-          ? 1
-          : -1;
-      });
-    }
-
-    return this.paginator.getPaginated(filtered, size, page);
   });
 
-  totalPages = computed(() =>
-    this.paginator.getTotalPages(this.batchSerialList(), this.pageSize())
+  readonly paginatedBatchList = computed(() =>
+    this.filteredBatchSErialList().slice(
+      (this.currentPage() - 1) * this.pageSize(),
+      this.currentPage() * this.pageSize()
+    )
   );
+
+  readonly totalFilteredCount = computed(
+    () => this.filteredBatchSErialList().length
+  );
+
+  readonly statusCounts = computed(() => {
+    const list = this.batchSerialList();
+    const counts: Record<string, number> = {
+      All: list.length,
+      Open: list.filter((batch) => batch.status === 'Open').length,
+      'In Progress': list.filter((batch) => batch.status === 'In Progress')
+        .length,
+      Cancelled: list.filter((batch) => batch.status === 'Cancelled').length,
+      Completed: list.filter((batch) => batch.status === 'Completed').length,
+    };
+    return counts;
+  });
+
+  readonly totalPages = computed(() => {
+    const totalItems = this.filteredBatchSErialList().length;
+    const pageSize = this.pageSize();
+    return Math.max(1, Math.ceil(totalItems / pageSize));
+  });
 
   handleSort(event: { column: string; direction: '' | 'asc' | 'desc' }): void {
     this.sortColumn.set(event.column); //updates the signal value
@@ -352,6 +385,7 @@ export class Batchserial implements OnInit {
 
     this.formUtils.resetWithDefaults(this.batchSerialForm, {
       id: null,
+      contractNo: '',
       orderQty: 0,
       deliverQty: 0,
       status: 'Open',

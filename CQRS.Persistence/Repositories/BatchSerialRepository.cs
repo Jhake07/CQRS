@@ -53,10 +53,32 @@ namespace CQRS.Persistence.Repositories
             return isExistingSerialPrefix;
         }
 
+        public async Task<List<BatchSerial>> GetAvailableBatchSerial()
+        {
+            //var batchSerials = await _context.BatchSerials.Where(x => x.Status != "Completed" && x.Status != "Cancelled" && x.BatchQty > x.OrderQty).ToListAsync();
+            var batchSerials = await _context.BatchSerials.Where(x => x.Status != "Completed" && x.Status != "Cancelled").ToListAsync();
+
+            return batchSerials;
+        }
+
         // Implementation for BeginTransactionAsync
         public async Task<IDbContextTransaction> BeginTransactionAsync()
         {
             return await _context.Database.BeginTransactionAsync();
+        }
+
+        public async Task UpdateBatchOrderQty(string contractNo, int jobOrderQty)
+        {
+            var batch = await _context.BatchSerials.FirstOrDefaultAsync(x => x.ContractNo == contractNo);
+            if (batch == null)
+                throw new InvalidOperationException("Batch not found.");
+
+            if (jobOrderQty > batch.BatchQty)
+                throw new InvalidOperationException("Job order quantity exceeds available batch quantity.");
+
+            batch.BatchQty -= jobOrderQty;
+
+            await _context.SaveChangesAsync();
         }
     }
 }

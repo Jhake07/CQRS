@@ -59,6 +59,31 @@ export class ProductComponent implements OnInit {
   searchBox = signal('');
   tableLoading = signal(false);
 
+  readonly totalFilteredItems = computed(
+    () => this.filteredProductList().length
+  );
+  readonly filteredProductList = computed(() => {
+    const status = this.activeStatus();
+    const search = this.searchBox().toLowerCase();
+
+    return this.productList()
+      .filter((product) => status === 'All' || product.stats === status)
+      .filter(
+        (product) =>
+          product.modelCode?.toLowerCase().includes(search) ||
+          product.description?.toLowerCase().includes(search)
+      );
+  });
+
+  readonly statusTabs = [
+    'All',
+    'Open',
+    'In Progress',
+    'Cancelled',
+    'Completed',
+  ] as const;
+  readonly activeStatus = signal<(typeof this.statusTabs)[number]>('All');
+
   //#region Initialization Functions
   readonly editableFields: string[] = [
     'modelCode',
@@ -219,42 +244,35 @@ export class ProductComponent implements OnInit {
   //#endregion
 
   //#region Table Functions
-  paginatedProductList = computed(() => {
-    const search = this.searchBox().toLowerCase().trim();
-    const page = this.currentPage();
-    const size = this.pageSize();
+  readonly paginatedProductList = computed(() =>
+    this.filteredProductList().slice(
+      (this.currentPage() - 1) * this.pageSize(),
+      this.currentPage() * this.pageSize()
+    )
+  );
 
-    let filtered = this.productList().filter((item) => {
-      return (
-        item.modelCode?.toLowerCase().includes(search) ||
-        item.description?.toLowerCase().includes(search) ||
-        item.brand?.toLowerCase().includes(search) ||
-        item.components?.toLowerCase().includes(search) ||
-        item.stats?.toLowerCase().includes(search) ||
-        item.defaultJOQty?.toString().includes(search)
-      );
-    });
+  readonly totalFilteredCount = computed(
+    () => this.filteredProductList().length
+  );
 
-    if (this.sortColumn() && this.sortDirection()) {
-      filtered.sort((a, b) => {
-        const valA = a[this.sortColumn() as keyof Product];
-        const valB = b[this.sortColumn() as keyof Product];
-        if (valA == null || valB == null) return 0;
-        return this.sortDirection() === 'asc'
-          ? valA > valB
-            ? 1
-            : -1
-          : valA < valB
-          ? 1
-          : -1;
-      });
-    }
-    return this.paginator.getPaginated(filtered, size, page);
+  readonly statusCounts = computed(() => {
+    const list = this.productList();
+    const counts: Record<string, number> = {
+      All: list.length,
+      Open: list.filter((product) => product.stats === 'Open').length,
+      'In Progress': list.filter((product) => product.stats === 'In Progress')
+        .length,
+      Cancelled: list.filter((product) => product.stats === 'Cancelled').length,
+      Completed: list.filter((product) => product.stats === 'Completed').length,
+    };
+    return counts;
   });
 
-  totalPages = computed(() =>
-    this.paginator.getTotalPages(this.productList(), this.pageSize())
-  );
+  readonly totalPages = computed(() => {
+    const totalItems = this.filteredProductList().length;
+    const pageSize = this.pageSize();
+    return Math.max(1, Math.ceil(totalItems / pageSize));
+  });
 
   handleSort(event: { column: string; direction: '' | 'asc' | 'desc' }): void {
     this.sortColumn.set(event.column);

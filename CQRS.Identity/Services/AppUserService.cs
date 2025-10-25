@@ -55,7 +55,9 @@ namespace CQRS.Identity.Services
                 IsActive = user.IsActive,
                 CreatedDate = user.CreatedDate,
                 Username = user.UserName,
-                Role = roles?.FirstOrDefault() ?? string.Empty
+                Role = roles?.FirstOrDefault() ?? string.Empty,
+                CreatedBy = user.CreatedBy
+
             };
         }
     }

@@ -12,4 +12,5 @@ export interface BatchSerial {
   startSNo: string;
   endSNo: string;
   item_ModelCode: string;
+  remainingQty: number;
 }

@@ -77,6 +77,9 @@ namespace CQRS.Persistence.Migrations
                     b.Property<int>("OrderQty")
                         .HasColumnType("int");
 
+                    b.Property<int>("RemainingQty")
+                        .HasColumnType("int");
+
                     b.Property<string>("SerialPrefix")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -120,18 +123,13 @@ namespace CQRS.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("JONo")
+                    b.Property<string>("JoNo")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("LeftQty")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Line1Qty")
-                        .HasColumnType("int");
-
-                    b.Property<int>("Line2Qty")
-                        .HasColumnType("int");
+                    b.Property<string>("Line")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ModifiedBy")
                         .IsRequired()
@@ -147,10 +145,7 @@ namespace CQRS.Persistence.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("ProcessOrderQtyLine1")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ProcessOrderQtyLine2")
+                    b.Property<int>("ProcessOrder")
                         .HasColumnType("int");
 
                     b.Property<DateTime>("StartTime")

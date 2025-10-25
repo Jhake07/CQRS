@@ -25,5 +25,6 @@ namespace CQRS.Application.Models.Identity
         [Required]
         [MinLength(6)]
         public required string ConfirmPassword { get; set; }
+        public required string CreatedBy { get; set; }
     }
 }

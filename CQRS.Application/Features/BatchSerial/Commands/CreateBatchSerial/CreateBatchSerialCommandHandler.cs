@@ -18,6 +18,8 @@ namespace CQRS.Application.Features.BatchSerial.Commands.CreateBatchSerial
 
         public async Task<CustomResultResponse> Handle(CreateBatchSerialCommand request, CancellationToken cancellationToken)
         {
+            using var transaction = await _batchSerialRepository.BeginTransactionAsync();
+
             try
             {
                 // Validate Incoming Data
@@ -33,6 +35,9 @@ namespace CQRS.Application.Features.BatchSerial.Commands.CreateBatchSerial
                 // Map the command to the domain entity
                 var batchSerial = _mapper.Map<Domain.BatchSerial>(request);
 
+                // RemainingQty is initially the same as BatchQty
+                batchSerial.RemainingQty = request.BatchQty;
+
                 // Save Batch Serial 
                 await _batchSerialRepository.CreateAsync(batchSerial);
                 _logger.LogInformation("Batch Serial created successfully with ID: {BatchSerialId}", batchSerial.ContractNo);
@@ -40,6 +45,9 @@ namespace CQRS.Application.Features.BatchSerial.Commands.CreateBatchSerial
                 // Generatate Main Serials
                 await CreateMainSerialsAsync(request, cancellationToken);
                 _logger.LogInformation("Main Serials created successfully for ContractNo: {ContractNo}", request.ContractNo);
+
+                // Commit transaction
+                await transaction.CommitAsync();
 
                 // Return success response
                 return new CustomResultResponse
@@ -51,6 +59,7 @@ namespace CQRS.Application.Features.BatchSerial.Commands.CreateBatchSerial
             }
             catch (BadRequestException ex)
             {
+                await transaction.RollbackAsync();
                 _logger.LogError(ex, "Validation error occurred for ContractNo: {ContractNo}", request.ContractNo);
 
                 // Return structured validation errors
@@ -61,9 +70,11 @@ namespace CQRS.Application.Features.BatchSerial.Commands.CreateBatchSerial
                     ValidationErrors = ex.ValidationErrors, // Include validation errors here
                     Id = null
                 };
+
             }
             catch (Exception ex)
             {
+                await transaction.RollbackAsync();
                 // Log and handle exceptions appropriately
                 _logger.LogError(ex, "An error occurred while processing CreateBatchSerialCommand for ContractNo: {ContractNo}", request.ContractNo);
                 return new CustomResultResponse

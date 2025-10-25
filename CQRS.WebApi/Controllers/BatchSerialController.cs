@@ -3,6 +3,7 @@ using CQRS.Application.Features.BatchSerial.Commands.CreateBatchSerial;
 using CQRS.Application.Features.BatchSerial.Commands.DeleteBatchSerial;
 using CQRS.Application.Features.BatchSerial.Commands.UpdateBatchSerial;
 using CQRS.Application.Features.BatchSerial.Queries.GetAll;
+using CQRS.Application.Features.BatchSerial.Queries.GetAvailableContract;
 using CQRS.Application.Features.BatchSerial.Queries.GetByContractNo;
 using CQRS.Application.Features.BatchSerial.Queries.GetById;
 using CQRS.Application.Shared.Exceptions;
@@ -46,6 +47,15 @@ namespace CQRS.WebApi.Controllers
 
             return batchserials;
         }
+
+        // GET api/<BatchSerialController>/available
+        [HttpGet("available")]
+        public async Task<List<BatchSerialDto>> GetAvailable()
+        {
+            var batchSerials = await _mediator.Send(new GetAvailableBatchSerialsQuery());
+            return batchSerials;
+        }
+
 
         // POST api/<BatchSerialController>
         [HttpPost]
