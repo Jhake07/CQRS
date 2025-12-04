@@ -176,6 +176,8 @@
           <app-batch-table
             [batchList]="paginatedBatchList()"
             (sort)="handleSort($event)"
+            [sortColumn]="sortColumn()"
+            [sortDirection]="sortDirection()"
             (edit)="populateFormEdit($event)"
             (view)="populateFormView($event)"
             (cancel)="cancelBatchSerial($event)"

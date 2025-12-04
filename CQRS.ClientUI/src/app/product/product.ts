@@ -275,8 +275,26 @@ export class ProductComponent implements OnInit {
   });
 
   handleSort(event: { column: string; direction: '' | 'asc' | 'desc' }): void {
-    this.sortColumn.set(event.column);
+    const key = event.column as keyof Product;
+
+    this.sortColumn.set(key);
     this.sortDirection.set(event.direction);
+
+    const sorted = [...this.productList()].sort((a, b) => {
+      const valA = a[key];
+      const valB = b[key];
+
+      const strA = valA?.toString().toLowerCase() ?? '';
+      const strB = valB?.toString().toLowerCase() ?? '';
+
+      return event.direction === 'asc'
+        ? strA.localeCompare(strB)
+        : event.direction === 'desc'
+        ? strB.localeCompare(strA)
+        : 0;
+    });
+
+    this.productList.set(sorted);
   }
 
   applyFieldAccess(): void {

@@ -14,13 +14,13 @@
             <th class="d-none d-sm-table-cell">Last Name</th>          
             <th class="d-none d-sm-table-cell">Email Address</th>  
             <th class="d-none d-sm-table-cell">Username</th>         
-            <th appSortableHeader [column]="'status'" [direction]="sortColumn === 'status' ? sortDirection : ''"
+            <th appSortableHeader [column]="'isActive'" [direction]="sortColumn === 'isActive' ? sortDirection : ''"
                 (sort)="sort.emit($event)">
                 Status
                 <i class="ms-1 fa" [ngClass]="{
-                    'fa-sort': sortColumn !== 'status' || sortDirection === '',
-                    'fa-sort-up': sortColumn === 'status' && sortDirection === 'asc',
-                    'fa-sort-down': sortColumn === 'status' && sortDirection === 'desc'
+                    'fa-sort': sortColumn !== 'isActive' || sortDirection === '',
+                    'fa-sort-up': sortColumn === 'isActive' && sortDirection === 'asc',
+                    'fa-sort-down': sortColumn === 'isActive' && sortDirection === 'desc'
                 }">
                 </i>
             </th>

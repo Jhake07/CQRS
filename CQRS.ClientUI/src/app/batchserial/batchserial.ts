@@ -292,9 +292,32 @@ export class Batchserial implements OnInit {
     return Math.max(1, Math.ceil(totalItems / pageSize));
   });
 
+  // handleSort(event: { column: string; direction: '' | 'asc' | 'desc' }): void {
+  //   this.sortColumn.set(event.column); //updates the signal value
+  //   this.sortDirection.set(event.direction); //updates the signal value
+  // }
+
   handleSort(event: { column: string; direction: '' | 'asc' | 'desc' }): void {
-    this.sortColumn.set(event.column); //updates the signal value
-    this.sortDirection.set(event.direction); //updates the signal value
+    const key = event.column as keyof BatchSerial;
+
+    this.sortColumn.set(key);
+    this.sortDirection.set(event.direction);
+
+    const sorted = [...this.batchSerialList()].sort((a, b) => {
+      const valA = a[key];
+      const valB = b[key];
+
+      const strA = valA?.toString().toLowerCase() ?? '';
+      const strB = valB?.toString().toLowerCase() ?? '';
+
+      return event.direction === 'asc'
+        ? strA.localeCompare(strB)
+        : event.direction === 'desc'
+        ? strB.localeCompare(strA)
+        : 0;
+    });
+
+    this.batchSerialList.set(sorted);
   }
 
   applyFieldAccess(): void {
