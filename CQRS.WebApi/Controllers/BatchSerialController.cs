@@ -118,25 +118,25 @@ namespace CQRS.WebApi.Controllers
 
             try
             {
+
+                // Ensure the ID in the route matches the ID in the request
+                if (updateBatchSerial.Id != id)
                 {
-                    // Ensure the ID in the route matches the ID in the request
-                    if (updateBatchSerial.Id != id)
-                    {
-                        _logger.LogWarning("Mismatch between route ID ({Id}) and request ID ({RequestId}).", id, updateBatchSerial.Id);
-                        return BadRequest("Route ID and body ID must match.");
-                    }
-
-                    // Send the command to the mediator
-                    var response = await _mediator.Send(updateBatchSerial);
-
-                    if (response == null || string.IsNullOrEmpty(response.Id))
-                    {
-                        _logger.LogWarning("Failed to update Batch Contract details. No valid data was returned.");
-                        return BadRequest(response);
-                    }
-
-                    return Ok(response);
+                    _logger.LogWarning("Mismatch between route ID ({Id}) and request ID ({RequestId}).", id, updateBatchSerial.Id);
+                    return BadRequest("Route ID and body ID must match.");
                 }
+
+                // Send the command to the mediator
+                var response = await _mediator.Send(updateBatchSerial);
+
+                if (response == null || string.IsNullOrEmpty(response.Id))
+                {
+                    _logger.LogWarning("Failed to update Batch Contract details. No valid data was returned.");
+                    return BadRequest(response);
+                }
+
+                return Ok(response);
+
             }
             catch (BadRequestException ex)
             {
