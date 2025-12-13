@@ -20,4 +20,9 @@
     <ProjectReference Include="..\CQRS.Domain\CQRS.Domain.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Features\ScannedUnit\Commands\CreateScannedUnit\" />
+    <Folder Include="Features\ScannedUnit\Queries\" />
+  </ItemGroup>
+
 </Project>

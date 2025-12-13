@@ -22,6 +22,7 @@ namespace CQRS.Persistence
             services.AddScoped<IMainSerialRepository, MainSerialRepository>();
             services.AddScoped<IProductRepository, ProductRepository>();
             services.AddScoped<IJobOrderRepository, JobOrderRepository>();
+            services.AddScoped<IScannedUnitsRepository, ScannedUnitsRepository>();
 
 
             return services;
