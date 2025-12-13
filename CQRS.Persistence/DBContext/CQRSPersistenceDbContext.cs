@@ -10,6 +10,7 @@ namespace CQRS.Persistence.DBContext
         public DbSet<MainSerial> MainSerials { get; set; }
         public DbSet<Product> Products { get; set; }
         public DbSet<JobOrder> JobOrders { get; set; }
+        public DbSet<ScannedUnits> ScannedUnits { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
