@@ -7,6 +7,17 @@ namespace CQRS.Persistence.Repositories
 {
     public class ScannedUnitsRepository(CQRSPersistenceDbContext context) : GenericRepository<ScannedUnits>(context), IScannedUnitsRepository
     {
+        // --- Station 4: Update Accessories ---
+        public async Task UpdateUnitAccessoriesAsync(string mainserial, string accessoriesSerial)
+        {
+            await _context.Set<ScannedUnits>()
+                .Where(u => u.MainSerial == mainserial)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(u => u.Accessories, accessoriesSerial)
+                    .SetProperty(u => u.ModifiedDate, DateTime.UtcNow)
+                );
+        }
+
         // --- Update Tag ---
         public async Task UpdateUnitTagAsync(string mainserial, string newTagNo)
         {
@@ -14,8 +25,7 @@ namespace CQRS.Persistence.Repositories
                 .Where(u => u.MainSerial == mainserial)
                 .ExecuteUpdateAsync(s => s
                     .SetProperty(u => u.TagNo, newTagNo)
-                    // Optional: Update ScanDate/ScanBy to track the time of this specific step
-                    .SetProperty(u => u.ScanDate, DateTime.UtcNow)
+                    .SetProperty(u => u.ModifiedDate, DateTime.UtcNow)
                 );
         }
 
