@@ -7,6 +7,18 @@ namespace CQRS.Persistence.Repositories
 {
     public class ScannedUnitsRepository(CQRSPersistenceDbContext context) : GenericRepository<ScannedUnits>(context), IScannedUnitsRepository
     {
+        // --- Update Tag ---
+        public async Task UpdateUnitTagAsync(string mainserial, string newTagNo)
+        {
+            await _context.Set<ScannedUnits>()
+                .Where(u => u.MainSerial == mainserial)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(u => u.TagNo, newTagNo)
+                    // Optional: Update ScanDate/ScanBy to track the time of this specific step
+                    .SetProperty(u => u.ScanDate, DateTime.UtcNow)
+                );
+        }
+
         // --- Update Components ---
         public async Task UpdateUnitComponentsAsync(string mainserial, string motherboardSerial, string pcbiSerial, string powerSupplySerial)
         {

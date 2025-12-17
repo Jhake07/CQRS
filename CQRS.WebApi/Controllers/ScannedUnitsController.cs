@@ -1,4 +1,5 @@
 ﻿using CQRS.Application.Features.ScannedUnit.Commands.UpdateScannedUnit.UpdateComponent;
+using CQRS.Application.Features.ScannedUnit.Commands.UpdateScannedUnit.UpdateTag;
 using CQRS.Application.Shared.Exceptions;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -92,6 +93,58 @@ namespace CQRS.WebApi.Controllers
             {
                 // Log unexpected exceptions (HTTP 500)
                 _logger.LogError(ex, "An unexpected error occurred while updating components for {MainSerial}", mainserial);
+                return StatusCode(500, new
+                {
+                    Message = "An internal server error occurred. Please try again later.",
+                    Details = ex.Message
+                });
+            }
+        }
+
+        [HttpPatch("{mainserial}/tag")]
+        // 1. Change the method signature to use the CustomResultResponse in the success case
+        public async Task<IActionResult> UpdateTag([FromRoute] string mainserial, [FromBody] UpdateTagCommand request)
+        {
+            _logger.LogInformation("Station 3: Received command to update tag for serial {MainSerial}", mainserial);
+
+            if (!ModelState.IsValid)
+            {
+                _logger.LogWarning("Validation failed for tagging update on {MainSerial}", mainserial);
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                var command = new UpdateTagCommand(
+                    MainSerial: mainserial,
+                    NewTagNo: request.NewTagNo);
+
+                // 2. CAPTURE the result from the mediator!
+                var result = await _mediator.Send(command);
+
+                _logger.LogInformation("Successfully executed tag update for serial {MainSerial}", mainserial);
+
+                // 3. RETURN the result object with a 200 OK status.
+                return Ok(result);
+
+                // Alternatively, if the update takes time, you could return Accepted(result); (202)
+            }
+            catch (BadRequestException ex)
+            {
+                // Handle validation or bad request errors (HTTP 400)
+                _logger.LogError(ex, "Validation or bad request error occurred while updating the unit tag.");
+
+                // If you are using an IResult convention (recommended), you can use result.ValidationErrors here
+                return BadRequest(new
+                {
+                    Message = "Validation or business rule failed.",
+                    ex.ValidationErrors
+                });
+            }
+            catch (Exception ex)
+            {
+                // Log unexpected exceptions (HTTP 500)
+                _logger.LogError(ex, "An unexpected error occurred while updating the tag for {MainSerial}", mainserial);
                 return StatusCode(500, new
                 {
                     Message = "An internal server error occurred. Please try again later.",

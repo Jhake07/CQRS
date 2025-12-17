@@ -6,5 +6,6 @@ namespace CQRS.Application.Contracts.Interface
     {
         Task UpdateUnitComponentsAsync(string mainserial, string motherboardSerial, string pcbiSerial, string powerSupplySerial);
         Task<bool> UnitExistsAsync(string mainSerial);
+        Task UpdateUnitTagAsync(string mainserial, string newTagNo);
     }
 }
