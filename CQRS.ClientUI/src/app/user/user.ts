@@ -164,14 +164,14 @@ export class User implements OnInit {
     this.isSaving = true;
     this.userForm.disable();
 
-    const payload: UpdateUserRequest = {
+    const payloadUpdate: UpdateUserRequest = {
       username: this.userForm.get('username')?.value,
       email: this.userForm.get('email')?.value,
       role: this.userForm.get('role')?.value,
       isActive: this.userForm.get('isActive')?.value,
     };
 
-    const payload1: RegisterUserRequest = {
+    const payloadRegister: RegisterUserRequest = {
       firstName: this.userForm.get('firstName')?.value,
       lastName: this.userForm.get('lastName')?.value,
       email: this.userForm.get('email')?.value,
@@ -186,8 +186,8 @@ export class User implements OnInit {
 
     const request$ =
       this.formMode === FormMode.Edit && this.selectedUser
-        ? this.appUserService.updateStatusRole(payload)
-        : this.appUserService.save(payload1); // save() still uses full User object
+        ? this.appUserService.updateStatusRole(payloadUpdate)
+        : this.appUserService.save(payloadRegister); // save() still uses full User object
 
     request$.subscribe({
       next: (response) => {
