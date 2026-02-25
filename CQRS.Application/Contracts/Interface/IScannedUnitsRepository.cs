@@ -8,5 +8,8 @@ namespace CQRS.Application.Contracts.Interface
         Task<bool> UnitExistsAsync(string mainSerial);
         Task UpdateUnitTagAsync(string mainserial, string newTagNo);
         Task UpdateUnitAccessoriesAsync(string mainserial, string accessoriesSerial);
+        Task<bool> CheckMainSerialAvailabilityAsync(string mainSerial);
+        Task<MainSerial> GetMainSerialContractNo(string mainSerial);
+        Task<string> GetJobOrderNumberAsync(string batchContractNumber);
     }
 }

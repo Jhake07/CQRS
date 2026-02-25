@@ -1,9 +1,11 @@
-﻿using CQRS.Application.Features.ScannedUnit.Commands.UpdateScannedUnit.UpdateAccessories;
+﻿using CQRS.Application.Features.ScannedUnit.Commands.CreateScannedUnit;
+using CQRS.Application.Features.ScannedUnit.Commands.UpdateScannedUnit.UpdateAccessories;
 using CQRS.Application.Features.ScannedUnit.Commands.UpdateScannedUnit.UpdateComponent;
 using CQRS.Application.Features.ScannedUnit.Commands.UpdateScannedUnit.UpdateTag;
 using CQRS.Application.Shared.Exceptions;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -32,9 +34,46 @@ namespace CQRS.WebApi.Controllers
 
         // POST api/<ScannedUnitsController>
         [HttpPost]
-        public void Post([FromBody] string value)
+        public async Task<ActionResult> Post([FromBody] CreateScannedUnitCommand request)
         {
+            if (request == null)
+            {
+                _logger.LogWarning("Received null details for Scanned Unit Creation.");
+                return BadRequest("Request body cannot be null.");
+            }
+
+            try
+            {
+                var result = await _mediator.Send(request, CancellationToken.None);
+
+                if (result == null)
+                {
+                    _logger.LogError("Scanned unit creation failed, result is null.");
+                    return BadRequest(result);
+                }
+
+                return result.IsSuccess ? CreatedAtAction(nameof(Get), new { id = result.Id }, result) : StatusCode((int)HttpStatusCode.BadRequest, result);
+            }
+            catch (BadRequestException ex)
+            {
+                _logger.LogError(ex, "Validation or bad request error occurred while creating Scanned Unit.");
+                return BadRequest(new
+                {
+                    Message = "Validation failed.",
+                    ex.ValidationErrors // Return structured validation errors
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "An unexpected error occurred while creating Scanned Unit.");
+                return StatusCode(500, new
+                {
+                    Message = "An internal server error occurred. Please try again later.",
+                    Details = ex.Message // Optional: Include this for debugging purposes
+                });
+            }
         }
+
 
         // PUT api/<ScannedUnitsController>/5
         [HttpPut("{id}")]

@@ -21,7 +21,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Features\ScannedUnit\Commands\CreateScannedUnit\" />
     <Folder Include="Features\ScannedUnit\Queries\" />
   </ItemGroup>
 

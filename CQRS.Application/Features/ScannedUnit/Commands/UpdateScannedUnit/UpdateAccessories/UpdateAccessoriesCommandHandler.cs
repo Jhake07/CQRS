@@ -6,11 +6,13 @@ using Microsoft.Extensions.Logging;
 
 namespace CQRS.Application.Features.ScannedUnit.Commands.UpdateScannedUnit.UpdateAccessories
 {
-    public class UpdateAccessoriesCommandHandler(ILogger<UpdateAccessoriesCommandHandler> logger, IScannedUnitsRepository scannedUnitsRepository)
+    public class UpdateAccessoriesCommandHandler(ILogger<UpdateAccessoriesCommandHandler> logger, IScannedUnitsRepository scannedUnitsRepository, IMainSerialRepository mainSerialRepository, IJobOrderRepository jobOrderRepository)
         : IRequestHandler<UpdateAccessoriesCommand, CustomResultResponse>
     {
         private readonly ILogger<UpdateAccessoriesCommandHandler> _logger = logger;
         private readonly IScannedUnitsRepository _scannedUnitsRepository = scannedUnitsRepository;
+        private readonly IMainSerialRepository _mainSerialRepository = mainSerialRepository;
+        private readonly IJobOrderRepository _jobOrderRepository = jobOrderRepository;
 
         public async Task<CustomResultResponse> Handle(UpdateAccessoriesCommand request, CancellationToken cancellationToken)
         {
@@ -18,7 +20,7 @@ namespace CQRS.Application.Features.ScannedUnit.Commands.UpdateScannedUnit.Updat
 
             try
             {
-                // 1. BUSINESS VALIDATION: Resource Existence Check
+                // BUSINESS VALIDATION: Resource Existence Check
                 // This check is now back in the handler.
                 var unitExists = await _scannedUnitsRepository.UnitExistsAsync(request.mainSerial);
 
@@ -29,10 +31,25 @@ namespace CQRS.Application.Features.ScannedUnit.Commands.UpdateScannedUnit.Updat
                     return CustomResultResponse.Failure($"Unit not found. Serial {request.mainSerial} does not exist in the system.");
                 }
 
-                // 2. EXECUTE DATABASE LOGIC
+                // Get the main unit's Job Order ID for later use in updating the ProcessOrder quantity
+                var jono = await _mainSerialRepository.GetJobOrderIdByMainSerialAsync(request.mainSerial);
+
+                // EXECUTE DATABASE LOGIC
                 await _scannedUnitsRepository.UpdateUnitAccessoriesAsync(
                     request.mainSerial,
                     request.accessoriesSerial);
+
+                // Add 1 to the ProcessOrder quantity for the Job Order
+                await _jobOrderRepository.AddProcessOrderQty(jono);
+
+                // Check if the Job Order is now completed after updating the ProcessOrder quantity
+                var isCompleted = await _jobOrderRepository.GetJobOrderCount(jono);
+
+                if (isCompleted.OrderQty == isCompleted.ProcessOrder)
+                // Update the JobOrder Status to "Completed" if the order quantity matches the processed order quantity
+                {
+                    await _jobOrderRepository.UpdateJoStatus(jono);
+                }
 
                 _logger.LogInformation("Successfully updated the accessories for serial {MainSerial}.", request.mainSerial);
                 return CustomResultResponse.Success("Unit accessories updated successfully.", request.mainSerial);
