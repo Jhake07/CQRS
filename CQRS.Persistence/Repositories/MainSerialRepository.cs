@@ -1,4 +1,5 @@
 ﻿using CQRS.Application.Contracts.Interface;
+using CQRS.Application.Shared.Exceptions;
 using CQRS.Domain;
 using CQRS.Persistence.DBContext;
 using Microsoft.EntityFrameworkCore;
@@ -43,6 +44,29 @@ namespace CQRS.Persistence.Repositories
 
             // Save all changes to the database
             await _context.SaveChangesAsync();
+        }
+
+        public async Task UpdateSerialJoNo(string mainSerial, string newJoNo)
+        {
+            await _context.Set<MainSerial>()
+                .Where(u => u.SerialNo == mainSerial)
+                .ExecuteUpdateAsync(s => s
+                    .SetProperty(u => u.JoNo, newJoNo)
+                    .SetProperty(u => u.ModifiedDate, DateTime.UtcNow)
+                );
+        }
+
+        public async Task<string> GetJobOrderIdByMainSerialAsync(string mainserial)
+        {
+            var unitDetails = await _context.MainSerials
+               .FirstOrDefaultAsync(u => u.SerialNo == mainserial);
+
+            if (unitDetails == null)
+            {
+                throw new MainSerialNotFoundException("MainSerial", mainserial, "is not found");
+            }
+
+            return unitDetails.JoNo;
         }
     }
 }
