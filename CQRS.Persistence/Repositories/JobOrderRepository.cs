@@ -8,7 +8,7 @@ namespace CQRS.Persistence.Repositories
 {
     public class JobOrderRepository(CQRSPersistenceDbContext context) : GenericRepository<Domain.JobOrder>(context), IJobOrderRepository
     {
-        public async Task<bool> CheckJobOrderNo(string joNo, string isNo, string lineNo)
+        public async Task<bool> CheckJobOrderNoAvailability(string joNo, string isNo, string lineNo)
         {
             var existingJobOrderNo = await _context.JobOrders
                 .AsNoTracking()
@@ -47,6 +47,45 @@ namespace CQRS.Persistence.Repositories
                 ?? throw new NotFoundException(nameof(JobOrder), id);
 
             return jobOrder;
+        }
+
+        public async Task AddProcessOrderQty(string joNo)
+        {
+            var jobOrderEntity = await _context.JobOrders
+                .FirstOrDefaultAsync(j => j.JoNo == joNo);
+
+            if (jobOrderEntity == null)
+            {
+                throw new JobOrderNotFoundException("JobOrder", joNo, "was not found.");
+            }
+
+            jobOrderEntity.ProcessOrder += 1;
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<JobOrder> GetJobOrderCount(string joNo)
+        {
+            // Retrieve the BatchSerial entity by its ID or throw an exception if not found
+            var jobOrder = await _context.JobOrders
+                .AsNoTracking() // Improves performance by not tracking the entity if updates are not needed
+                .FirstOrDefaultAsync(x => x.JoNo == joNo)
+                ?? throw new NotFoundException(nameof(JobOrder), joNo);
+
+            return jobOrder;
+        }
+
+        public async Task UpdateJoStatus(string joNo)
+        {
+            var jobOrderEntity = await _context.JobOrders
+                .FirstOrDefaultAsync(j => j.JoNo == joNo);
+
+            if (jobOrderEntity == null)
+            {
+                throw new JobOrderNotFoundException("JobOrder", joNo, "was not found.");
+            }
+
+            jobOrderEntity.Stats = "Completed";
+            await _context.SaveChangesAsync();
         }
     }
 }

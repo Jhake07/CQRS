@@ -27,7 +27,7 @@ namespace CQRS.Application.Features.JobOrder.Commands.Create
 
         private async Task<bool> CheckExistingJobOrder(string jono, string isno, string lineno)
         {
-            var exists = await _jobOrderRepository.CheckJobOrderNo(jono, isno, lineno);
+            var exists = await _jobOrderRepository.CheckJobOrderNoAvailability(jono, isno, lineno);
             return !exists;
         }
     }
