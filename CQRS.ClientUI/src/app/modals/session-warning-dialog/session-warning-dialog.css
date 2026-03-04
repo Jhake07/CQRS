@@ -1,0 +1,44 @@
+.custom-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  backdrop-filter: blur(2px);
+  opacity: 0;
+  transition: opacity .25s ease;
+  z-index: 1050;
+  pointer-events: none;
+}
+.custom-backdrop.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+.modal-content {
+  animation: fadeUp .25s ease;
+}
+@keyframes fadeUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+/* Scroll lock */
+body.modal-open {
+  overflow: hidden;
+}
+/* Optional dark mode support */
+:root.dark .modal-content {
+  background: #222;
+  color: #eee;
+}
+:root.dark .modal-header {
+  background: #444 !important;
+  color: #fff !important;
+}
+:root.dark .btn-secondary {
+  background: #555 !important;
+  color: #fff !important;
+}

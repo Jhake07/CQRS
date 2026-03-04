@@ -1,0 +1,27 @@
+@if (show()) {
+  <div
+    class="modal fade d-block custom-backdrop"
+    [class.show]="isVisible()"
+    tabindex="-1"
+    aria-modal="true"
+    role="dialog"
+  >
+    <div class="modal-dialog modal-dialog-centered">
+      <div #modalBox class="modal-content shadow border-warning">
+        <!-- Header -->
+        <div class="modal-header bg-warning text-dark">
+          <h5 class="modal-title">Session Expiring</h5>
+        </div>
+        <!-- Body -->
+        <div class="modal-body">
+          <p>Your session will expire in a few minutes. Stay logged in?</p>
+        </div>
+        <!-- Footer -->
+        <div class="modal-footer">
+          <button class="btn btn-secondary" (click)="logout()">Log Out</button>
+          <button class="btn btn-primary" (click)="extendSession()">Stay Logged In</button>
+        </div>
+      </div>
+    </div>
+  </div>
+}

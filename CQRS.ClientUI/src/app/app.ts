@@ -4,11 +4,12 @@ import { CommonModule } from '@angular/common';
 import { AccountService } from './_services/account.service';
 import { Header } from './layout/header/header';
 import { Footer } from './layout/footer/footer';
+import { SessionWarningDialog } from './modals/session-warning-dialog/session-warning-dialog';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, Header, Footer],
+  imports: [CommonModule, RouterOutlet, Header, Footer, SessionWarningDialog],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })

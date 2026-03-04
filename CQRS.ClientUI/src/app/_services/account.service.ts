@@ -1,106 +1,106 @@
-import { HttpClient } from '@angular/common/http';
-import { inject, Injectable, signal, WritableSignal } from '@angular/core';
-import { environment } from '../environment/environment.dev';
-import { AuthResponse } from '../_models/response/authresponse.model';
-import { Observable, tap, catchError, throwError } from 'rxjs';
+import { Injectable, inject, signal, effect, DestroyRef } from '@angular/core';
 import { Router } from '@angular/router';
+import { HttpClient } from '@angular/common/http';
 import { ToastmessageService } from './toastmessage.service';
+import {
+  fromEvent,
+  merge,
+  interval,
+  map,
+  tap,
+  throttleTime,
+  switchMap,
+  startWith,
+  filter,
+  takeUntil,
+  Subject,
+} from 'rxjs';
 import { jwtDecode } from 'jwt-decode';
-
+import { AuthResponse } from '../_models/response/authresponse.model';
+import { environment } from '../environment/environment.dev';
 @Injectable({ providedIn: 'root' })
 export class AccountService {
   private http = inject(HttpClient);
-  private baseUrl = environment.apiUrl;
   private router = inject(Router);
   private toast = inject(ToastmessageService);
-  private currentUserSignal: WritableSignal<AuthResponse | null> = signal(null);
+  private destroyRef = inject(DestroyRef);
+  private baseUrl = environment.apiUrl;
+  private destroy$ = new Subject<void>();
+  private currentUserSignal = signal<AuthResponse | null>(null);
   public readonly currentUser = this.currentUserSignal.asReadonly();
-
-  private logoutTimer: any = null;
   private sessionWarningSignal = signal(false);
   public readonly sessionWarning$ = this.sessionWarningSignal.asReadonly();
-
+  // private readonly IDLE_TIMEOUT_MS = 10 * 60 * 1000; // 10 min
+  // private readonly WARNING_MS = 30 * 1000; // warning at 30s left
+  //for testing, set shorter timeouts
+  private readonly IDLE_TIMEOUT_MS = 2 * 60 * 1000; // 2 minutes
+  private readonly WARNING_MS = 15 * 1000; // warn at last 15s
   constructor() {
-    const user = this.getStoredUser();
-    if (user) {
-      this.setCurrentUser(user, false); // restore user, don’t reset expiry
-    }
+    const stored = this.getStoredUser();
+    if (stored) this.setCurrentUser(stored, false);
+    this.initializeIdleTracking();
+    this.destroyRef.onDestroy(() => this.destroy$.next());
   }
-
+  private initializeIdleTracking(): void {
+    const activity$ = merge(
+      fromEvent(window, 'click'),
+      // fromEvent(window, 'mousemove'),
+      fromEvent(window, 'keydown'),
+    ).pipe(
+      throttleTime(1000),
+      tap(() => this.resetSessionExpiry()),
+    );
+    activity$.pipe(takeUntil(this.destroy$)).subscribe();
+    interval(1000)
+      .pipe(
+        startWith(0),
+        map(() => this.currentUserSignal()?.expiresAt ?? 0),
+        filter((expiresAt) => expiresAt > 0),
+        tap((expiresAt) => {
+          const now = Date.now();
+          const remaining = expiresAt - now;
+          if (remaining <= 0) {
+            this.logout();
+            this.router.navigate(['/login']);
+          } else if (remaining <= this.WARNING_MS) {
+            this.sessionWarningSignal.set(true);
+          } else {
+            this.sessionWarningSignal.set(false);
+          }
+        }),
+        takeUntil(this.destroy$),
+      )
+      .subscribe();
+  }
+  private resetSessionExpiry(): void {
+    const user = this.currentUserSignal();
+    if (!user) return;
+    const now = Date.now();
+    const expiresAt = now + this.IDLE_TIMEOUT_MS;
+    const updated = { ...user, expiresAt };
+    localStorage.setItem('user', JSON.stringify(updated));
+    this.currentUserSignal.set(updated);
+  }
   setCurrentUser(
     user: AuthResponse,
     applyNewExpiry = true,
-    remember = false
+    remember = false,
   ): void {
     const now = Date.now();
-
     const expiresAt = applyNewExpiry
-      ? now + 1000 * 60 * 10 // fixed 10-minute expiry
-      : user.expiresAt ?? now + 1000 * 60 * 10;
-
-    const userWithExpiry = { ...user, expiresAt };
-    localStorage.setItem('user', JSON.stringify(userWithExpiry));
-    //localStorage.setItem('token', user.token);
-    this.currentUserSignal.set(user);
-    this.scheduleAutoLogout(expiresAt - now);
+      ? now + this.IDLE_TIMEOUT_MS
+      : (user.expiresAt ?? now + this.IDLE_TIMEOUT_MS);
+    const updated = { ...user, expiresAt };
+    localStorage.setItem('user', JSON.stringify(updated));
+    this.currentUserSignal.set(updated);
   }
-
-  private scheduleAutoLogout(timeoutMs: number): void {
-    if (this.logoutTimer) clearTimeout(this.logoutTimer);
-
-    // Show warning 30s before actual logout
-    const warningOffset = 1000 * 30; // 30 seconds
-    const warningTime = timeoutMs - warningOffset;
-
-    if (warningTime > 0) {
-      setTimeout(() => {
-        console.warn('Session is about to expire');
-        this.sessionWarningSignal.set(true); // Show modal
-      }, warningTime);
-    }
-
-    // 🔐 Auto logout
-    this.logoutTimer = setTimeout(() => {
-      this.logout();
-      this.router.navigate(['/login']);
-    }, timeoutMs);
-  }
-
-  getStoredUser(): AuthResponse | null {
-    const raw = localStorage.getItem('user');
-    if (!raw) return null;
-
-    try {
-      const parsed: AuthResponse = JSON.parse(raw);
-      const now = Date.now();
-
-      if (typeof parsed.expiresAt === 'number' && parsed.expiresAt > now) {
-        return parsed;
-      }
-
-      localStorage.removeItem('user');
-      return null;
-    } catch {
-      localStorage.removeItem('user');
-      return null;
-    }
-  }
-
   extendSession(): void {
     const currentUser = this.currentUserSignal();
     if (!currentUser) return;
-
-    this.sessionWarningSignal.set(false); // hide modal
-
-    // Reapply current session with fresh expiry
-    this.setCurrentUser(currentUser, true, true); // treat like remembered
+    this.sessionWarningSignal.set(false);
+    this.setCurrentUser(currentUser, true);
   }
-
-  login(payload: {
-    email: string;
-    password: string;
-    rememberMe: boolean;
-  }): Observable<AuthResponse> {
+  login(payload: { email: string; password: string; rememberMe: boolean }) {
     return this.http
       .post<AuthResponse>(`${this.baseUrl}userauth/login`, payload)
       .pipe(
@@ -109,35 +109,40 @@ export class AccountService {
             this.setCurrentUser(response, true, payload.rememberMe);
           } else {
             this.toast.error('Login failed:', response.message);
-            //console.warn('Login failed:', response.message);
           }
         }),
-        catchError((error) => {
-          console.error('Login error:', error);
-          return throwError(() => error);
-        })
       );
   }
-
   logout(): void {
     localStorage.removeItem('user');
     this.currentUserSignal.set(null);
-    this.sessionWarningSignal.set(false); // Hide session modal
+    this.sessionWarningSignal.set(false);
+    document.body.classList.remove('modal-open');
     this.toast.info('Account has been logged out');
-    if (this.logoutTimer) {
-      clearTimeout(this.logoutTimer);
-      this.logoutTimer = null;
+    this.router.navigate(['/login']);
+  }
+  getStoredUser(): AuthResponse | null {
+    const raw = localStorage.getItem('user');
+    if (!raw) return null;
+    try {
+      const user = JSON.parse(raw) as AuthResponse;
+      if (user.expiresAt && user.expiresAt > Date.now()) {
+        return user;
+      }
+      localStorage.removeItem('user');
+      return null;
+    } catch {
+      localStorage.removeItem('user');
+      return null;
     }
   }
-
   getLoggedInUserId(): string {
     const raw = localStorage.getItem('user');
     if (!raw) return '';
-
     try {
       const parsed: AuthResponse = JSON.parse(raw);
-      const decoded: any = jwtDecode(parsed.token);      
-      return decoded?.id?.toString() ?? ''; // or decoded.user_id depending on your token claim
+      const decoded: any = jwtDecode(parsed.token);
+      return decoded?.id?.toString() ?? '';
     } catch {
       return '';
     }
