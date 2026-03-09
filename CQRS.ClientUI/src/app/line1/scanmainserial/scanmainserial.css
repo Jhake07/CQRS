@@ -1,0 +1,9 @@
+.scan-wrapper {
+  max-width: 600px;
+  margin: 0 auto;
+  padding-top: 60px;
+}
+input {
+  font-size: 1.3rem;
+  letter-spacing: 1px;
+}

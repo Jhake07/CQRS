@@ -1,0 +1,11 @@
+<div class="scan-wrapper">
+  <label class="form-label">Scan Serial / Barcode</label>
+  <input
+    class="form-control form-control-lg"
+    placeholder="Scan barcode here..."
+    [ngModel]="serialInput()"
+    (ngModelChange)="serialInput.set($event)"
+    (keyup.enter)="onScanEnter()"
+    autofocus
+  />
+</div>
