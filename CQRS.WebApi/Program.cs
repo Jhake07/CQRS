@@ -3,17 +3,13 @@ using CQRS.Application.Features;
 using CQRS.Identity;
 using CQRS.Infrastructure;
 using CQRS.Persistence;
-
 var builder = WebApplication.CreateBuilder(args);
-
 // Add services to the container.
 builder.Services.AddApplicationServices();
 builder.Services.AddInfrastructureServices(builder.Configuration);
 builder.Services.AddPersistenceServices(builder.Configuration);
 builder.Services.AddIdentityServices(builder.Configuration);
-
 builder.Services.AddControllers();
-
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
@@ -22,30 +18,40 @@ builder.Services.AddCors(options =>
               .AllowAnyMethod()
               .AllowCredentials());
 });
-
-
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-
 var app = builder.Build();
-
-app.UseMiddleware<ExceptionHandlingMiddleware>();
-
-// Configure the HTTP request pipeline.
+// --------------------------------------
+// 1. Swagger (Dev only)
+// --------------------------------------
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
-// HTTPS & Security
+// --------------------------------------
+// 2. HTTPS Redirection
+// --------------------------------------
 app.UseHttpsRedirection();
+// --------------------------------------
+// 3. CORS MUST COME BEFORE EVERYTHING ELSE
+// --------------------------------------
 app.UseCors("AllowFrontend");
-
+// --------------------------------------
+// 4. Authentication comes BEFORE your custom wrappers
+// --------------------------------------
 app.UseAuthentication();
+// --------------------------------------
+// 5. Custom Middlewares (Order matters!)
+// --------------------------------------
+app.UseMiddleware<ResponseHandlingMiddleware>();  // MUST run before exceptions
+app.UseMiddleware<ExceptionHandlingMiddleware>();
+// --------------------------------------
+// 6. Authorization
+// --------------------------------------
 app.UseAuthorization();
-
+// --------------------------------------
+// 7. Controllers
+// --------------------------------------
 app.MapControllers();
-
 await app.RunAsync();
