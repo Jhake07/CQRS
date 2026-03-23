@@ -1,15 +1,13 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { RouterOutlet, Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Router, RouterOutlet } from '@angular/router';
 import { AccountService } from './_services/account.service';
-import { Header } from './layout/header/header';
-import { Footer } from './layout/footer/footer';
 import { SessionWarningDialog } from './modals/session-warning-dialog/session-warning-dialog';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, Header, Footer, SessionWarningDialog],
+  imports: [CommonModule, RouterOutlet, SessionWarningDialog],
   templateUrl: './app.html',
   styleUrl: './app.css',
 })
@@ -34,7 +32,7 @@ export class App implements OnInit {
     } else {
       // If not logged in and trying to access a protected route
       const isProtectedRoute = ['/user', '/product', '/batchserial'].includes(
-        currentUrl
+        currentUrl,
       );
       if (isProtectedRoute) {
         this.router.navigate(['/login']);

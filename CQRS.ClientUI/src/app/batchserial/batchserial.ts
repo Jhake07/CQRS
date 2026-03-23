@@ -2,26 +2,28 @@ import { ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { FormGroup } from '@angular/forms';
 
 import { of, timer } from 'rxjs';
-import { switchMap, tap, finalize } from 'rxjs/operators';
+import { finalize, switchMap, tap } from 'rxjs/operators';
 import { BatchSerialFormFactory } from '../_formfactories/batch-serial-form.factory';
 import { BatchSerialService } from '../_services/batchserial.service';
 import { ConfirmService } from '../_services/confirm.service';
-import { ToastmessageService } from '../_services/toastmessage.service';
 import { FormAccessService } from '../_services/form-access.service';
 import { FormUtilsService } from '../_services/form-utils.service';
 import { PaginatorService } from '../_services/paginator.service';
+import { ToastmessageService } from '../_services/toastmessage.service';
 
+import { BatchStatus } from '../_enums/batchstatus.enum';
+import { FormMode } from '../_enums/form-mode.enum';
 import { BatchSerial } from '../_models/batchserial/batchserial.model';
 import { CustomResultResponse } from '../_models/response/customresultresponse.model';
-import { FormMode } from '../_enums/form-mode.enum';
-import { BatchStatus } from '../_enums/batchstatus.enum';
 
-import { SharedFormsModule } from '../shared/shared-forms/shared-forms-module';
-import { SharedTablesModule } from '../shared/shared-tables/shared-tables-module';
-import { signal, computed } from '@angular/core';
-import { BatchTable } from './batch-table/batch-table';
+import { computed, signal } from '@angular/core';
 import { Product } from '../_models/product/product.model';
 import { ProductService } from '../_services/product.service';
+import { SharedFormsModule } from '../shared/shared-forms/shared-forms-module';
+import { SharedTablesModule } from '../shared/shared-tables/shared-tables-module';
+import { BatchTable } from './batch-table/batch-table';
+
+import { LayoutComponent } from '../layout/layout/layout';
 
 @Component({
   selector: 'app-batchserial',
@@ -40,6 +42,7 @@ export class Batchserial implements OnInit {
   private paginator = inject(PaginatorService);
   private cdRef = inject(ChangeDetectorRef);
   private productService = inject(ProductService);
+  private layout = inject(LayoutComponent);
   StatusType = BatchStatus;
   FormMode = FormMode;
   statusOptions: string[] = Object.values(BatchStatus);
@@ -62,7 +65,7 @@ export class Batchserial implements OnInit {
   readonly productList = signal<Product[]>([]);
 
   readonly totalFilteredItems = computed(
-    () => this.filteredBatchSErialList().length
+    () => this.filteredBatchSErialList().length,
   );
   readonly activeStatus = signal<(typeof this.statusTabs)[number]>('All');
   readonly statusTabs = [
@@ -84,6 +87,7 @@ export class Batchserial implements OnInit {
   ];
 
   ngOnInit(): void {
+    this.layout.updatePageTitle('Batch Serial');
     this.formMode = FormMode.New;
     this.initializeForm();
     this.loadBatchSerials();
@@ -105,10 +109,10 @@ export class Batchserial implements OnInit {
             switchMap(() => {
               this.batchSerialList.set(data);
               return [];
-            })
-          )
+            }),
+          ),
         ),
-        finalize(() => this.tableLoading.set(false))
+        finalize(() => this.tableLoading.set(false)),
       )
       .subscribe({
         error: (error) => {
@@ -145,7 +149,7 @@ export class Batchserial implements OnInit {
         'Confirm Save',
         'Are you sure you want to save this batch serial entry?',
         'Yes, Save',
-        'Cancel'
+        'Cancel',
       )
       .pipe(
         tap((confirmed) => {
@@ -154,7 +158,7 @@ export class Batchserial implements OnInit {
             this.batchSerialForm.disable();
           }
         }),
-        switchMap((confirmed) => (confirmed ? timer(2000) : of(null)))
+        switchMap((confirmed) => (confirmed ? timer(2000) : of(null))),
       )
       .subscribe((tick) => {
         if (tick !== null) {
@@ -169,7 +173,7 @@ export class Batchserial implements OnInit {
     if (this.batchSerialForm.invalid) {
       this.toast.warning(
         'Please double-check the form before submitting.',
-        'Validation Warning'
+        'Validation Warning',
       );
       return;
     }
@@ -190,7 +194,7 @@ export class Batchserial implements OnInit {
             response.message,
             this.formMode === FormMode.Edit
               ? 'Update Successful'
-              : 'Save Successful'
+              : 'Save Successful',
           );
 
           if (this.formMode === FormMode.Edit) {
@@ -198,7 +202,7 @@ export class Batchserial implements OnInit {
             const updatedList = this.batchSerialList().map((item) =>
               item.contractNo === this.selectedBatchSerial?.contractNo
                 ? this.batchSerialForm.value
-                : item
+                : item,
             );
             this.batchSerialList.set(updatedList);
           } else {
@@ -258,19 +262,19 @@ export class Batchserial implements OnInit {
           batch.address?.toLowerCase().includes(search) ||
           batch.item_ModelCode?.toLowerCase().includes(search) ||
           batch.status?.toLowerCase().includes(search) ||
-          batch.batchQty?.toString().includes(search)
+          batch.batchQty?.toString().includes(search),
       );
   });
 
   readonly paginatedBatchList = computed(() =>
     this.filteredBatchSErialList().slice(
       (this.currentPage() - 1) * this.pageSize(),
-      this.currentPage() * this.pageSize()
-    )
+      this.currentPage() * this.pageSize(),
+    ),
   );
 
   readonly totalFilteredCount = computed(
-    () => this.filteredBatchSErialList().length
+    () => this.filteredBatchSErialList().length,
   );
 
   readonly statusCounts = computed(() => {
@@ -313,8 +317,8 @@ export class Batchserial implements OnInit {
       return event.direction === 'asc'
         ? strA.localeCompare(strB)
         : event.direction === 'desc'
-        ? strB.localeCompare(strA)
-        : 0;
+          ? strB.localeCompare(strA)
+          : 0;
     });
 
     this.batchSerialList.set(sorted);
@@ -324,7 +328,7 @@ export class Batchserial implements OnInit {
     this.formAccess.applyAccess(
       this.batchSerialForm,
       this.formMode,
-      this.editableFields
+      this.editableFields,
     );
   }
 
@@ -349,7 +353,7 @@ export class Batchserial implements OnInit {
         'Confirm Cancellation',
         'Are you sure you want to cancel this batch contract?',
         'Yes',
-        'No'
+        'No',
       )
       .pipe(
         switchMap((confirmed) => {
@@ -367,7 +371,7 @@ export class Batchserial implements OnInit {
             this.isSaving = false;
             this.cdRef.detectChanges();
           });
-        })
+        }),
       )
       .subscribe({
         next: (response) => {

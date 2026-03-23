@@ -1,23 +1,22 @@
-import { Injectable, inject, signal, effect, DestroyRef } from '@angular/core';
-import { Router } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
-import { ToastmessageService } from './toastmessage.service';
+import { DestroyRef, Injectable, inject, signal } from '@angular/core';
+import { Router } from '@angular/router';
+import { jwtDecode } from 'jwt-decode';
 import {
+  Subject,
+  filter,
   fromEvent,
-  merge,
   interval,
   map,
+  merge,
+  startWith,
+  takeUntil,
   tap,
   throttleTime,
-  switchMap,
-  startWith,
-  filter,
-  takeUntil,
-  Subject,
 } from 'rxjs';
-import { jwtDecode } from 'jwt-decode';
 import { AuthResponse } from '../_models/response/authresponse.model';
 import { environment } from '../environment/environment.dev';
+import { ToastmessageService } from './toastmessage.service';
 @Injectable({ providedIn: 'root' })
 export class AccountService {
   private http = inject(HttpClient);
@@ -30,11 +29,11 @@ export class AccountService {
   public readonly currentUser = this.currentUserSignal.asReadonly();
   private sessionWarningSignal = signal(false);
   public readonly sessionWarning$ = this.sessionWarningSignal.asReadonly();
-  // private readonly IDLE_TIMEOUT_MS = 10 * 60 * 1000; // 10 min
-  // private readonly WARNING_MS = 30 * 1000; // warning at 30s left
+  private readonly IDLE_TIMEOUT_MS = 10 * 60 * 1000; // 10 min
+  private readonly WARNING_MS = 30 * 1000; // warning at 30s left
   //for testing, set shorter timeouts
-  private readonly IDLE_TIMEOUT_MS = 2 * 60 * 1000; // 2 minutes
-  private readonly WARNING_MS = 15 * 1000; // warn at last 15s
+  // private readonly IDLE_TIMEOUT_MS = 2 * 60 * 1000; // 2 minutes
+  // private readonly WARNING_MS = 15 * 1000; // warn at last 15s
   constructor() {
     const stored = this.getStoredUser();
     if (stored) this.setCurrentUser(stored, false);

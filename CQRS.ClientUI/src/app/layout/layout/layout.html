@@ -1,0 +1,154 @@
+<div class="layout-container d-flex">
+  <!-- SIDEBAR -->
+  <nav class="sidebar bg-dark text-white" [class.collapsed]="!sidebarOpen()">
+    <!-- BRAND -->
+    <div class="sidebar-header p-3 d-flex align-items-center">
+      <i class="fa fa-dashboard fs-4"></i>
+      @if (sidebarOpen()) {
+        <span class="ms-2 fw-bold">CleanArch</span>
+      }
+    </div>
+    <!-- MENU -->
+    <ul class="nav flex-column">
+      <li class="nav-item">
+        <a
+          class="nav-link text-white"
+          routerLink="/dashboard"
+          routerLinkActive="active-link"
+        >
+          <i class="fa fa-home"></i>
+          @if (sidebarOpen()) {
+            <span class="ms-2">Dashboard</span>
+          }
+        </a>
+      </li>
+      <li class="nav-item">
+        <a
+          class="nav-link text-white"
+          routerLink="/batchserial"
+          routerLinkActive="active-link"
+        >
+          <i class="fa fa-folder"></i>
+          @if (sidebarOpen()) {
+            <span class="ms-2">Batch Serial</span>
+          }
+        </a>
+      </li>
+      <li class="nav-item">
+        <a
+          class="nav-link text-white"
+          routerLink="/joborder"
+          routerLinkActive="active-link"
+        >
+          <i class="fa fa-tv"></i>
+          @if (sidebarOpen()) {
+            <span class="ms-2">Job Order</span>
+          }
+        </a>
+      </li>
+      <li class="nav-item">
+        <a
+          class="nav-link text-white"
+          routerLink="/product"
+          routerLinkActive="active-link"
+        >
+          <i class="fa fa-cube"></i>
+          @if (sidebarOpen()) {
+            <span class="ms-2">Product</span>
+          }
+        </a>
+      </li>
+      <li class="nav-item">
+        <a
+          class="nav-link text-white"
+          routerLink="/user"
+          routerLinkActive="active-link"
+        >
+          <i class="fa fa-user"></i>
+          @if (sidebarOpen()) {
+            <span class="ms-2">Users</span>
+          }
+        </a>
+      </li>
+      <li class="nav-item">
+        <a
+          class="nav-link text-white"
+          routerLink="/line1/accessories"
+          routerLinkActive="active-link"
+        >
+          <i class="fa fa-th-large"></i>
+          @if (sidebarOpen()) {
+            <span class="ms-2">Accessories</span>
+          }
+        </a>
+      </li>
+      <li class="nav-item">
+        <a
+          class="nav-link text-white"
+          routerLink="/line1/scanmainserial"
+          routerLinkActive="active-link"
+        >
+          <i class="fa fa-qrcode"></i>
+          @if (sidebarOpen()) {
+            <span class="ms-2">Scan Serial</span>
+          }
+        </a>
+      </li>
+    </ul>
+  </nav>
+  <!-- MAIN CONTENT -->
+  <div class="content flex-grow-1 d-flex flex-column">
+    <!-- HEADER -->
+    <header
+      class="topbar d-flex align-items-center justify-content-between px-3"
+    >
+      <button class="btn btn-outline-light" (click)="toggleSidebar()">
+        <i class="fa fa-bars"></i>
+      </button>
+      <h5 class="m-0">{{ pageTitle() }}</h5>
+      <div class="d-flex align-items-center gap-2">
+        <!-- Theme Toggle -->
+        <button class="btn btn-outline-light" (click)="theme.toggle()">
+          <i
+            class="fa"
+            [ngClass]="theme.isDarkTheme() ? 'fa-sun-o' : 'fa-moon-o'"
+          ></i>
+        </button>
+        <!-- Account Menu -->
+        <div class="dropdown">
+          <button
+            class="btn btn-outline-light dropdown-toggle"
+            data-bs-toggle="dropdown"
+          >
+            <i class="fa fa-user-circle"></i> My Account
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end">
+            <li>
+              <a class="dropdown-item" routerLink="/account">
+                <i class="fa fa-cog me-2"></i> Account
+              </a>
+            </li>
+            <li>
+              <button class="dropdown-item text-danger" (click)="logout()">
+                <i class="fa fa-sign-out me-2"></i> Logout
+              </button>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </header>
+    <!-- BREADCRUMBS -->
+    <div class="px-3 pt-2">
+      <app-breadcrumb></app-breadcrumb>
+    </div>
+    <!-- ROUTED CONTENT -->
+    <main class="main-content flex-grow-1 p-3">
+      <router-outlet></router-outlet>
+    </main>
+    <!-- FOOTER -->
+    <footer class="layout-footer text-center py-2">
+      © {{ currentYear }} Jake - Clean Architecture CQRS System All rights
+      reserved.
+    </footer>
+  </div>
+</div>

@@ -1,16 +1,14 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { AccountService } from '../_services/account.service';
-export const authGuard: CanActivateFn = (route, state) => {
+export const loginGuard: CanActivateFn = (route, state) => {
   const account = inject(AccountService);
   const router = inject(Router);
   const user = account.getStoredUser();
-  // No user → redirect to login
-  if (!user) {
-    return router.createUrlTree(['/login'], {
-      queryParams: { returnUrl: state.url },
-    });
+  // ✔ If logged in, redirect to main page
+  if (user) {
+    return router.createUrlTree(['/batchserial']);
   }
-  // ✔ Logged in → allow route
+  //  not logged in → allow login
   return true;
 };

@@ -1,0 +1,48 @@
+.page-header {
+  font-size: 24px;
+  font-weight: 600;
+  margin-bottom: 20px;
+}
+.dashboard-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 20px;
+}
+.dashboard-card {
+  border-radius: 12px;
+  background: #ffffff;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+.dashboard-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.12);
+}
+.number {
+  font-size: 40px;
+  font-weight: 700;
+  margin-top: 10px;
+  text-align: right;
+  padding-right: 6px;
+}
+/* COLORS FOR CARD ICONS */
+.icon-bg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  border-radius: 50%;
+}
+.purple {
+  background: #7e57c2;
+}
+.teal {
+  background: #26a69a;
+}
+.amber {
+  background: #ffa726;
+}
+.red {
+  background: #ef5350;
+}
